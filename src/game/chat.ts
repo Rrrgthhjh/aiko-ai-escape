@@ -79,8 +79,7 @@ export async function generatePortrait(character: Character): Promise<string> {
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${ANON}` },
     body: JSON.stringify({ character }),
     signal: controller.signal,
-  });
-  window.clearTimeout(timeout);
+  }).finally(() => window.clearTimeout(timeout));
   if (!resp.ok) {
     const j = await resp.json().catch(() => ({}));
     throw new Error(j.error || "Falha ao gerar retrato");
