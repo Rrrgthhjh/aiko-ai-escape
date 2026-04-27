@@ -39,7 +39,8 @@ export default function CharacterCreator({
     </button>
   );
 
-  const valid = c.name.trim().length > 0 && c.personality.trim().length > 5;
+  const valid = c.personality.trim().length > 5;
+  const normalized = { ...c, name: c.name.trim() || "Aiko" };
 
   return (
     <div className="max-w-2xl w-full mx-auto bg-card-soft rounded-2xl p-6 shadow-soft border border-border/60">
@@ -55,6 +56,7 @@ export default function CharacterCreator({
         <div>
           <Label>Nome</Label>
           <Input value={c.name} onChange={(e) => set("name", e.target.value)} placeholder="Ex: Aiko, Yuki, Ren..." maxLength={30} />
+          <p className="text-xs text-muted-foreground mt-1">Se deixar vazio, ela se chamará Aiko.</p>
         </div>
 
         <div>
@@ -93,7 +95,7 @@ export default function CharacterCreator({
           className="w-full bg-aurora text-primary-foreground hover:opacity-90 shadow-glow font-display tracking-wider"
           size="lg"
           disabled={!valid}
-          onClick={() => onConfirm(c)}
+          onClick={() => onConfirm(normalized)}
         >
           {ctaLabel}
         </Button>
