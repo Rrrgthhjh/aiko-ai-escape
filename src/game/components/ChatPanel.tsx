@@ -49,10 +49,10 @@ export default function ChatPanel({ character, messages, setMessages }: Props) {
   const send = async () => {
     if (loading) return;
     const f = filterUserMessage(input);
-    if (!f.ok) { setWarn(f.reason); return; }
+    if (f.ok === false) { setWarn(f.reason); return; }
     setWarn(null);
-
-    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: f.cleaned, ts: Date.now() };
+    const cleaned = f.cleaned;
+    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: cleaned, ts: Date.now() };
     setMessages((m) => [...m, userMsg]);
     setInput("");
     setLoading(true);
