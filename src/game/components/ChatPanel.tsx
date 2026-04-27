@@ -2,17 +2,21 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Send, AlertTriangle, Loader2 } from "lucide-react";
-import type { Character, ChatMessage } from "../types";
+import type { Character, ChatMessage, Mood } from "../types";
 import { streamChat } from "../chat";
 import { filterUserMessage } from "../contentFilter";
+import { MOOD_LABELS } from "../gameState";
 
 type Props = {
   character: Character;
   messages: ChatMessage[];
   setMessages: (updater: (m: ChatMessage[]) => ChatMessage[]) => void;
+  mood: Mood;
+  persuasion: number;
+  suspicion: number;
 };
 
-export default function ChatPanel({ character, messages, setMessages }: Props) {
+export default function ChatPanel({ character, messages, setMessages, mood, persuasion, suspicion }: Props) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [warn, setWarn] = useState<string | null>(null);
@@ -78,6 +82,16 @@ export default function ChatPanel({ character, messages, setMessages }: Props) {
 
   return (
     <div className="flex flex-col h-full bg-card-soft border-t border-border/60 backdrop-blur-md">
+      <div className="px-4 py-2 border-b border-border/60 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 items-center text-[10px] uppercase tracking-widest">
+        <span className="font-display text-primary-glow">{character.name}: {MOOD_LABELS[mood]}</span>
+        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+          <div className="h-full bg-primary transition-all duration-500" style={{ width: `${persuasion}%` }} />
+        </div>
+        <span className="text-muted-foreground">convencimento</span>
+        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+          <div className="h-full bg-destructive transition-all duration-500" style={{ width: `${suspicion}%` }} />
+        </div>
+      </div>
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
           <div className="text-muted-foreground text-sm italic text-center pt-8">{character.name} está te observando...</div>

@@ -34,13 +34,16 @@ const Index = () => {
     setPhase("generating");
     try {
       const img = await generatePortrait(c);
-      const fresh: SaveState = { character: c, portrait: img, messages: [], warningSeen: false };
+      const fresh: SaveState = { character: c, portrait: img, messages: [], warningSeen: false, discoveredClues: [] };
       writeSave(fresh);
       setSave(fresh);
       setPhase("warning");
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Falha ao gerar retrato");
-      setPhase("creating");
+      const fresh: SaveState = { character: c, portrait: null, messages: [], warningSeen: false, discoveredClues: [] };
+      writeSave(fresh);
+      setSave(fresh);
+      toast.warning("Não consegui gerar o retrato agora, mas o jogo vai começar mesmo assim.");
+      setPhase("warning");
     }
   };
 

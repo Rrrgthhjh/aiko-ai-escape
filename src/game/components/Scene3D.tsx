@@ -1,10 +1,11 @@
 import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef, useMemo } from "react";
 import * as THREE from "three";
+import type { Mood, Room as RoomName } from "../types";
 
-type Props = { room: "sala" | "cozinha" | "banheiro" | "quarto" };
+type Props = { room: RoomName; clueFound?: boolean; mood?: Mood };
 
-const ROOM_PALETTES: Record<Props["room"], { wall: string; floor: string; accent: string }> = {
+const ROOM_PALETTES: Record<RoomName, { wall: string; floor: string; accent: string }> = {
   sala: { wall: "#3a2a4a", floor: "#1d1426", accent: "#ff5fb0" },
   cozinha: { wall: "#2a3a4a", floor: "#13202c", accent: "#5fd0ff" },
   banheiro: { wall: "#2a4a4a", floor: "#132c2a", accent: "#a0ffe5" },
@@ -36,12 +37,14 @@ function Particles() {
   );
 }
 
-function Room({ palette }: { palette: { wall: string; floor: string; accent: string } }) {
+function Room({ palette, clueFound = false, mood = "calm" }: { palette: { wall: string; floor: string; accent: string }; clueFound?: boolean; mood?: Mood }) {
   const lightRef = useRef<THREE.PointLight>(null);
+  const clueRef = useRef<THREE.Mesh>(null);
   useFrame((s) => {
     if (lightRef.current) {
-      lightRef.current.intensity = 1.2 + Math.sin(s.clock.elapsedTime * 2) * 0.15;
+      lightRef.current.intensity = (mood === "angry" ? 1.8 : 1.2) + Math.sin(s.clock.elapsedTime * (mood === "tense" ? 5 : 2)) * 0.15;
     }
+    if (clueRef.current) clueRef.current.rotation.y += 0.015;
   });
   return (
     <group>
@@ -82,6 +85,12 @@ function Room({ palette }: { palette: { wall: string; floor: string; accent: str
         <boxGeometry args={[1, 0.6, 1]} />
         <meshStandardMaterial color="#1a1020" roughness={0.5} />
       </mesh>
+      {!clueFound && (
+        <mesh ref={clueRef} position={[-2, 0.05, -3.45]} castShadow>
+          <octahedronGeometry args={[0.18, 0]} />
+          <meshStandardMaterial color={palette.accent} emissive={palette.accent} emissiveIntensity={1.2} roughness={0.25} />
+        </mesh>
+      )}
       <Particles />
     </group>
   );
@@ -97,7 +106,7 @@ function CameraRig() {
   return null;
 }
 
-export default function Scene3D({ room }: Props) {
+export default function Scene3D({ room, clueFound, mood }: Props) {
   const palette = ROOM_PALETTES[room];
   return (
     <Canvas
@@ -108,7 +117,7 @@ export default function Scene3D({ room }: Props) {
     >
       <fog attach="fog" args={[palette.floor, 4, 14]} />
       <CameraRig />
-      <Room palette={palette} />
+      <Room palette={palette} clueFound={clueFound} mood={mood} />
     </Canvas>
   );
 }

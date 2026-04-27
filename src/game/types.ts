@@ -14,17 +14,22 @@ export type ChatMessage = {
   ts: number;
 };
 
+export type Room = "sala" | "cozinha" | "banheiro" | "quarto";
+
+export type Mood = "calm" | "soft" | "tense" | "angry" | "hopeful";
+
 export type SaveState = {
   character: Character;
   portrait: string | null; // data URL
   messages: ChatMessage[];
   warningSeen: boolean;
+  discoveredClues?: string[];
 };
 
 export const DEFAULT_CHARACTER: Character = {
-  name: "",
+  name: "Aiko",
   skin: "Clara",
-  hair: "Longo, preto azulado",
+  hair: "Longo preto azulado",
   eyes: "Violeta",
   outfit: "Vestido escuro com detalhes brancos",
   personality: "Doce e atenciosa por fora, possessiva por dentro.",
