@@ -72,11 +72,15 @@ export async function streamChat({
 
 export async function generatePortrait(character: Character): Promise<string> {
   const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-portrait`;
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), 25000);
   const resp = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${ANON}` },
     body: JSON.stringify({ character }),
+    signal: controller.signal,
   });
+  window.clearTimeout(timeout);
   if (!resp.ok) {
     const j = await resp.json().catch(() => ({}));
     throw new Error(j.error || "Falha ao gerar retrato");
