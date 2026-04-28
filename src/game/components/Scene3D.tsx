@@ -6,10 +6,10 @@ import type { Mood, Room as RoomName } from "../types";
 type Props = { room: RoomName; clueFound?: boolean; mood?: Mood };
 
 const ROOM_PALETTES: Record<RoomName, { wall: string; floor: string; accent: string }> = {
-  sala: { wall: "#3a2a4a", floor: "#1d1426", accent: "#ff5fb0" },
-  cozinha: { wall: "#2a3a4a", floor: "#13202c", accent: "#5fd0ff" },
-  banheiro: { wall: "#2a4a4a", floor: "#132c2a", accent: "#a0ffe5" },
-  quarto: { wall: "#4a2a3a", floor: "#26131d", accent: "#ff7fc5" },
+  sala: { wall: "#7a5a8a", floor: "#3d2c46", accent: "#ff8fd0" },
+  cozinha: { wall: "#5a7a8a", floor: "#2d404c", accent: "#7fe0ff" },
+  banheiro: { wall: "#5a8a8a", floor: "#2d4c4a", accent: "#b0ffe5" },
+  quarto: { wall: "#8a5a7a", floor: "#46233d", accent: "#ff9fd5" },
 };
 
 function Particles() {
@@ -42,7 +42,7 @@ function Room({ palette, clueFound = false, mood = "calm" }: { palette: { wall: 
   const clueRef = useRef<THREE.Mesh>(null);
   useFrame((s) => {
     if (lightRef.current) {
-      lightRef.current.intensity = (mood === "angry" ? 1.8 : 1.2) + Math.sin(s.clock.elapsedTime * (mood === "tense" ? 5 : 2)) * 0.15;
+      lightRef.current.intensity = (mood === "angry" ? 2.6 : 2.0) + Math.sin(s.clock.elapsedTime * (mood === "tense" ? 5 : 2)) * 0.2;
     }
     if (clueRef.current) clueRef.current.rotation.y += 0.015;
   });
@@ -71,10 +71,12 @@ function Room({ palette, clueFound = false, mood = "calm" }: { palette: { wall: 
         <planeGeometry args={[2, 2.4]} />
         <meshBasicMaterial color="#9fc8ff" />
       </mesh>
-      <pointLight ref={lightRef} position={[-3, 2.2, -1.5]} color="#9fc8ff" intensity={1.2} distance={10} />
+      <pointLight ref={lightRef} position={[-3, 2.2, -1.5]} color="#9fc8ff" intensity={2.0} distance={14} />
       {/* Lâmpada acento */}
-      <pointLight position={[0, 3, 0]} color={palette.accent} intensity={0.8} distance={8} />
-      <ambientLight intensity={0.25} />
+      <pointLight position={[0, 3, 0]} color={palette.accent} intensity={1.6} distance={12} />
+      <pointLight position={[0, 1.5, 3]} color="#ffffff" intensity={0.6} distance={10} />
+      <ambientLight intensity={0.6} />
+      <hemisphereLight args={[palette.accent, palette.floor, 0.5]} />
 
       {/* Móveis simples */}
       <mesh position={[2, -0.5, -3]} castShadow>
@@ -115,7 +117,7 @@ export default function Scene3D({ room, clueFound, mood }: Props) {
       gl={{ antialias: true, powerPreference: "high-performance" }}
       dpr={[1, 1.5]}
     >
-      <fog attach="fog" args={[palette.floor, 4, 14]} />
+      <fog attach="fog" args={[palette.floor, 8, 20]} />
       <CameraRig />
       <Room palette={palette} clueFound={clueFound} mood={mood} />
     </Canvas>
