@@ -85,5 +85,46 @@ export async function generatePortrait(character: Character): Promise<string> {
     throw new Error(j.error || "Falha ao gerar retrato");
   }
   const data = await resp.json();
-  return data.image as string;
+  const raw = data.image as string;
+  try {
+    return await removeGreenBackground(raw);
+  } catch (e) {
+    console.warn("chroma key falhou, usando original:", e);
+    return raw;
+  }
+}
+
+// Remove fundo verde (chroma key) usando canvas no navegador.
+async function removeGreenBackground(src: string): Promise<string> {
+  const img = await loadImage(src);
+  const canvas = document.createElement("canvas");
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return src;
+  ctx.drawImage(img, 0, 0);
+  const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const p = data.data;
+  for (let i = 0; i < p.length; i += 4) {
+    const r = p[i], g = p[i + 1], b = p[i + 2];
+    // Verde dominante e claro -> transparente
+    if (g > 110 && g > r + 30 && g > b + 30) {
+      p[i + 3] = 0;
+    } else if (g > r + 12 && g > b + 12) {
+      // Spill verde nas bordas: reduz canal verde
+      p[i + 1] = Math.max(r, b);
+    }
+  }
+  ctx.putImageData(data, 0, 0);
+  return canvas.toDataURL("image/png");
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Falha ao carregar imagem"));
+    img.src = src;
+  });
 }
