@@ -114,12 +114,12 @@ export default function Game({
       <div className="relative flex-1 min-h-0">
         <Scene3D room={room} clueFound={discoveredClues.includes(ROOM_CLUES[room].id)} mood={gameState.mood} />
         {portrait && (
-          <div className="pointer-events-none absolute inset-y-0 right-0 sm:right-4 flex items-end sm:items-center justify-end z-10">
+          <div className="pointer-events-none absolute inset-0 flex items-end justify-center z-10">
             <img
               src={portrait}
               alt={character.name}
-              className={`h-[60%] sm:h-[80%] max-h-[480px] w-auto object-contain anime-glow drop-shadow-2xl select-none transition-all duration-700 ${expressionStyles[gameState.mood]}`}
-              style={{ maskImage: "linear-gradient(to bottom, black 85%, transparent 100%)" }}
+              className={`h-[78%] sm:h-[92%] max-h-[640px] w-auto object-contain select-none transition-all duration-700 ${expressionStyles[gameState.mood]}`}
+              style={{ filter: "drop-shadow(0 18px 32px hsl(var(--primary) / 0.45))" }}
             />
           </div>
         )}
