@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Eye, KeyRound, Pause } from "lucide-react";
+import { Eye, KeyRound, Pause, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Scene3D from "../components/Scene3D";
 import ChatPanel from "../components/ChatPanel";
@@ -22,6 +22,10 @@ export default function Game({
   const [paused, setPaused] = useState(false);
   const [regenLoading, setRegenLoading] = useState(false);
   const [discoveredClues, setDiscoveredClues] = useState<string[]>(initial.discoveredClues ?? []);
+  const ROOM_ORDER: Room[] = ["sala", "cozinha", "banheiro", "quarto"];
+  const roomIdx = ROOM_ORDER.indexOf(room);
+  const goPrev = () => setRoom(ROOM_ORDER[(roomIdx - 1 + ROOM_ORDER.length) % ROOM_ORDER.length]);
+  const goNext = () => setRoom(ROOM_ORDER[(roomIdx + 1) % ROOM_ORDER.length]);
   const gameState = useMemo(() => analyzeGameState(messages, discoveredClues.length), [messages, discoveredClues.length]);
   const expressionStyles: Record<Mood, string> = {
     calm: "saturate-100 contrast-100",
@@ -113,6 +117,21 @@ export default function Game({
       {/* Cena 3D + retrato sobreposto */}
       <div className="relative flex-1 min-h-0">
         <Scene3D room={room} clueFound={discoveredClues.includes(ROOM_CLUES[room].id)} mood={gameState.mood} />
+        {/* Setas point-and-click laterais */}
+        <button
+          onClick={goPrev}
+          aria-label="Cômodo anterior"
+          className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-11 h-16 sm:w-14 sm:h-20 rounded-2xl bg-card-soft/70 hover:bg-primary/30 border border-primary/40 backdrop-blur-md flex items-center justify-center shadow-glow text-primary-glow transition-all"
+        >
+          <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
+        </button>
+        <button
+          onClick={goNext}
+          aria-label="Próximo cômodo"
+          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-11 h-16 sm:w-14 sm:h-20 rounded-2xl bg-card-soft/70 hover:bg-primary/30 border border-primary/40 backdrop-blur-md flex items-center justify-center shadow-glow text-primary-glow transition-all"
+        >
+          <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
+        </button>
         {portrait && (
           <div className="pointer-events-none absolute inset-0 flex items-end justify-center z-10">
             <img
