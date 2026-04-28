@@ -57,10 +57,27 @@ export default function CharacterCreator({
       </p>
 
       <div className="space-y-5">
-        <div>
-          <Label>Nome</Label>
-          <Input value={c.name} onChange={(e) => set("name", e.target.value)} placeholder="Ex: Aiko, Yuki, Ren..." maxLength={30} />
-          <p className="text-xs text-muted-foreground mt-1">Se deixar vazio, ela se chamará Aiko.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <Label>Seu nome (jogador)</Label>
+            <Input
+              value={c.playerName}
+              onChange={(e) => set("playerName", e.target.value)}
+              placeholder="Como ela vai te chamar"
+              maxLength={30}
+            />
+            <p className="text-xs text-muted-foreground mt-1">Use um apelido — não use seu nome real.</p>
+          </div>
+          <div>
+            <Label>Nome dela (IA)</Label>
+            <Input
+              value={c.name}
+              onChange={(e) => set("name", e.target.value)}
+              placeholder="Ex: Aiko, Yuki, Ren..."
+              maxLength={30}
+            />
+            <p className="text-xs text-muted-foreground mt-1">Se vazio, ela se chamará Aiko.</p>
+          </div>
         </div>
 
         <div>
