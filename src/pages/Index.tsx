@@ -64,8 +64,10 @@ const Index = () => {
       )}
 
       {phase === "creating" && (
-        <div className="h-full overflow-y-auto py-6 px-4 flex items-center">
-          <CharacterCreator onConfirm={handleCreate} ctaLabel="Criar e gerar retrato" />
+        <div className="h-full overflow-y-auto py-6 px-4">
+          <div className="min-h-full flex items-start sm:items-center justify-center">
+            <CharacterCreator onConfirm={handleCreate} ctaLabel="Criar e gerar retrato" />
+          </div>
         </div>
       )}
 
