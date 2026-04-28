@@ -39,8 +39,12 @@ export default function CharacterCreator({
     </button>
   );
 
-  const valid = c.personality.trim().length > 5;
-  const normalized = { ...c, name: c.name.trim() || "Aiko" };
+  const valid = c.personality.trim().length > 5 && c.playerName.trim().length > 0;
+  const normalized = {
+    ...c,
+    name: c.name.trim() || "Aiko",
+    playerName: c.playerName.trim() || "Você",
+  };
 
   return (
     <div className="max-w-2xl w-full mx-auto bg-card-soft rounded-2xl p-6 shadow-soft border border-border/60">
