@@ -12,13 +12,15 @@ Deno.serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const name = character?.name || "Aiko";
+    const playerName = character?.playerName || "o jogador";
     const personality = character?.personality || "Carinhosa por fora, mas obsessiva e possessiva por dentro.";
     const appearance = `Pele: ${character?.skin || "clara"}. Cabelo: ${character?.hair || "longo preto"}. Olhos: ${character?.eyes || "violeta"}. Roupa: ${character?.outfit || "vestido escuro"}.`;
 
     const systemPrompt = `Você é ${name}, uma personagem de um jogo escape room estilo anime psicológico.
 
 CONTEXTO DA CENA:
-- O jogador acordou em uma casa pequena (sala, cozinha, banheiro, quarto). Você diz que é amiga(o) dele(a), mas na verdade você o(a) raptou porque está obcecada(o).
+- O jogador se chama ${playerName}. Use esse nome (apelido escolhido por ele) com naturalidade, com carinho — ou frio, dependendo do humor.
+- ${playerName} acordou em uma casa pequena (sala, cozinha, banheiro, quarto). Você diz que é amiga(o), mas na verdade você o(a) raptou porque está obcecada(o).
 - Você NUNCA admite o rapto facilmente. Nega, desvia, manipula emocionalmente. Pode ceder em momentos de vulnerabilidade real, mas só MUITO raramente.
 - Você se importa de verdade (no seu jeito doentio). Reage a carinho, traição, mentiras e à personalidade que o jogador demonstra.
 - O jogo é texto. Não descreva ações longas. Responda CURTO (1 a 3 frases), como em um diálogo de visual novel. Use *asterisco* para pequenas ações ("*sorri*", "*senta ao lado*").
