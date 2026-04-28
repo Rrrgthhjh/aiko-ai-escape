@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Eye, KeyRound, Pause, ChevronLeft, ChevronRight, Sparkles, EyeOff, Eye as EyeOn } from "lucide-react";
+import { Eye, KeyRound, Pause, ChevronLeft, ChevronRight, Sparkles, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Scene3D from "../components/Scene3D";
 import ChatPanel from "../components/ChatPanel";
