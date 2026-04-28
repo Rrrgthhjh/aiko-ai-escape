@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Eye, KeyRound, Pause, ChevronLeft, ChevronRight } from "lucide-react";
+import { Eye, KeyRound, Pause, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Scene3D from "../components/Scene3D";
 import ChatPanel from "../components/ChatPanel";
@@ -11,6 +11,7 @@ import { writeSave } from "../storage";
 import { generatePortrait } from "../chat";
 import { toast } from "sonner";
 import { analyzeGameState, MOOD_LABELS, ROOM_CLUES } from "../gameState";
+import { playRoomAmbience, stopAmbience } from "../audio";
 
 export default function Game({
   initial, onExit,
@@ -24,9 +25,19 @@ export default function Game({
   const [discoveredClues, setDiscoveredClues] = useState<string[]>(initial.discoveredClues ?? []);
   const ROOM_ORDER: Room[] = ["sala", "cozinha", "banheiro", "quarto"];
   const roomIdx = ROOM_ORDER.indexOf(room);
-  const goPrev = () => setRoom(ROOM_ORDER[(roomIdx - 1 + ROOM_ORDER.length) % ROOM_ORDER.length]);
-  const goNext = () => setRoom(ROOM_ORDER[(roomIdx + 1) % ROOM_ORDER.length]);
+  const [transitioning, setTransitioning] = useState(false);
+  const changeRoom = (target: Room) => {
+    if (target === room || transitioning) return;
+    setTransitioning(true);
+    window.setTimeout(() => {
+      setRoom(target);
+      window.setTimeout(() => setTransitioning(false), 320);
+    }, 280);
+  };
+  const goPrev = () => changeRoom(ROOM_ORDER[(roomIdx - 1 + ROOM_ORDER.length) % ROOM_ORDER.length]);
+  const goNext = () => changeRoom(ROOM_ORDER[(roomIdx + 1) % ROOM_ORDER.length]);
   const gameState = useMemo(() => analyzeGameState(messages, discoveredClues.length), [messages, discoveredClues.length]);
+  const clueHere = discoveredClues.includes(ROOM_CLUES[room].id);
   const expressionStyles: Record<Mood, string> = {
     calm: "saturate-100 contrast-100",
     soft: "saturate-125 brightness-110",
@@ -49,6 +60,13 @@ export default function Game({
     writeSave({ character, portrait, messages, warningSeen: true, discoveredClues });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [character, portrait, discoveredClues]);
+
+  // Ambiente sonoro por cômodo
+  useEffect(() => {
+    playRoomAmbience(room);
+    return () => { /* mantido entre trocas */ };
+  }, [room]);
+  useEffect(() => () => stopAmbience(), []);
 
   const handleClearMemory = () => {
     _setMessages(() => {
@@ -106,7 +124,7 @@ export default function Game({
     <div className="fixed inset-0 flex flex-col bg-background">
       {/* Top bar */}
       <div className="absolute top-3 left-3 right-3 z-30 flex items-center justify-between gap-2 pointer-events-none">
-        <RoomPicker current={room} onPick={setRoom} />
+        <RoomPicker current={room} onPick={changeRoom} />
         <div className="pointer-events-auto">
           <Button onClick={() => setPaused(true)} size="icon" variant="outline" className="bg-card-soft border-primary/40">
             <Pause className="w-4 h-4" />
@@ -116,7 +134,13 @@ export default function Game({
 
       {/* Cena 3D + retrato sobreposto */}
       <div className="relative flex-1 min-h-0">
-        <Scene3D room={room} clueFound={discoveredClues.includes(ROOM_CLUES[room].id)} mood={gameState.mood} />
+        <Scene3D room={room} clueFound={clueHere} mood={gameState.mood} />
+        {/* Overlay de transição entre cômodos */}
+        <div
+          className={`pointer-events-none absolute inset-0 z-30 bg-background transition-opacity duration-300 ${
+            transitioning ? "opacity-100" : "opacity-0"
+          }`}
+        />
         {/* Setas point-and-click laterais */}
         <button
           onClick={goPrev}
@@ -146,8 +170,13 @@ export default function Game({
           <div className="bg-card-soft border border-border/60 rounded-lg px-2.5 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
             {room} · {MOOD_LABELS[gameState.mood]}
           </div>
-          <Button onClick={handleInspectClue} disabled={discoveredClues.includes(ROOM_CLUES[room].id)} size="sm" variant="outline" className="justify-start bg-card-soft border-primary/40 text-xs">
-            <Eye className="w-3.5 h-3.5 mr-2" /> {discoveredClues.includes(ROOM_CLUES[room].id) ? "pista encontrada" : `examinar ${ROOM_CLUES[room].label}`}
+          {!clueHere && (
+            <div className="flex items-center gap-1.5 bg-accent/20 border border-accent/50 rounded-lg px-2 py-1 text-[10px] uppercase tracking-widest text-accent-foreground animate-pulse">
+              <Sparkles className="w-3 h-3" /> pista neste cômodo
+            </div>
+          )}
+          <Button onClick={handleInspectClue} disabled={clueHere} size="sm" variant="outline" className="justify-start bg-card-soft border-primary/40 text-xs">
+            <Eye className="w-3.5 h-3.5 mr-2" /> {clueHere ? "pista encontrada" : `examinar ${ROOM_CLUES[room].label}`}
           </Button>
           <Button onClick={handleTryDoor} size="sm" variant="outline" className="justify-start bg-card-soft border-accent/40 text-xs">
             <KeyRound className="w-3.5 h-3.5 mr-2" /> tentar a porta ({discoveredClues.length}/4)
