@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Eye, KeyRound, Pause, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Eye, KeyRound, Pause, ChevronLeft, ChevronRight, Sparkles, EyeOff, Eye as EyeOn } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Scene3D from "../components/Scene3D";
 import ChatPanel from "../components/ChatPanel";
@@ -23,6 +23,7 @@ export default function Game({
   const [paused, setPaused] = useState(false);
   const [regenLoading, setRegenLoading] = useState(false);
   const [discoveredClues, setDiscoveredClues] = useState<string[]>(initial.discoveredClues ?? []);
+  const [hudHidden, setHudHidden] = useState(false);
   const ROOM_ORDER: Room[] = ["sala", "cozinha", "banheiro", "quarto"];
   const roomIdx = ROOM_ORDER.indexOf(room);
   const [transitioning, setTransitioning] = useState(false);
