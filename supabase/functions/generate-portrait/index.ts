@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const prompt = `Anime visual novel character sprite, half-body portrait, soft cel-shaded illustration, ONLY THE CHARACTER on a fully transparent background (no scene, no walls, no floor, no props), clean cutout, character: ${character?.name || "girl"}, skin tone: ${character?.skin || "fair"}, hair: ${character?.hair || "long black hair"}, eyes: ${character?.eyes || "violet"}, outfit: ${character?.outfit || "dark casual dress"}, expression: enigmatic gentle smile with intense gaze, high quality, detailed eyes, anime visual novel sprite style, centered composition, soft rim light, transparent PNG background`;
+    const prompt = `Anime visual novel character sprite, half-body portrait. ABSOLUTE REQUIREMENT: pure solid #00FF00 chroma key green background (RGB 0,255,0), uniform flat green, NO gradients, NO shadows on background, NO floor, NO walls, NO props, NO scenery, NO frame, NO border, NO vignette, NO text. Character fully isolated, clean silhouette edges, no green clothing. Character: ${character?.name || "girl"}, skin tone: ${character?.skin || "fair"}, hair: ${character?.hair || "long black hair"}, eyes: ${character?.eyes || "violet"}, outfit: ${character?.outfit || "dark casual dress"}. Expression: enigmatic gentle smile with intense gaze. Soft cel-shaded anime illustration, detailed eyes, centered composition, soft rim light on the character only. Output must look like a green screen sprite ready for keying.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
