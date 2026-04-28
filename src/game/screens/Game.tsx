@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Eye, KeyRound, Pause, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { Eye, KeyRound, Pause, ChevronLeft, ChevronRight, Sparkles, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Scene3D from "../components/Scene3D";
 import ChatPanel from "../components/ChatPanel";
@@ -23,6 +23,7 @@ export default function Game({
   const [paused, setPaused] = useState(false);
   const [regenLoading, setRegenLoading] = useState(false);
   const [discoveredClues, setDiscoveredClues] = useState<string[]>(initial.discoveredClues ?? []);
+  const [hudHidden, setHudHidden] = useState(false);
   const ROOM_ORDER: Room[] = ["sala", "cozinha", "banheiro", "quarto"];
   const roomIdx = ROOM_ORDER.indexOf(room);
   const [transitioning, setTransitioning] = useState(false);
@@ -122,15 +123,27 @@ export default function Game({
 
   return (
     <div className="fixed inset-0 flex flex-col bg-background">
-      {/* Top bar */}
-      <div className="absolute top-3 left-3 right-3 z-30 flex items-center justify-between gap-2 pointer-events-none">
-        <RoomPicker current={room} onPick={changeRoom} />
-        <div className="pointer-events-auto">
-          <Button onClick={() => setPaused(true)} size="icon" variant="outline" className="bg-card-soft border-primary/40">
-            <Pause className="w-4 h-4" />
-          </Button>
+      {/* Top bar (oculta com HUD) */}
+      {!hudHidden && (
+        <div className="absolute top-3 left-3 right-16 z-30 flex items-center justify-between gap-2 pointer-events-none">
+          <RoomPicker current={room} onPick={changeRoom} />
+          <div className="pointer-events-auto">
+            <Button onClick={() => setPaused(true)} size="icon" variant="outline" className="bg-card-soft border-primary/40">
+              <Pause className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Botão de mostrar/ocultar HUD — SEMPRE visível */}
+      <button
+        onClick={() => setHudHidden((v) => !v)}
+        aria-label={hudHidden ? "Mostrar interface" : "Ocultar interface"}
+        title={hudHidden ? "Mostrar interface" : "Ocultar interface"}
+        className="fixed top-3 right-3 z-50 w-10 h-10 rounded-full bg-card-soft/90 hover:bg-primary/30 border border-primary/60 backdrop-blur-md flex items-center justify-center text-primary-glow shadow-glow transition-all"
+      >
+        {hudHidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+      </button>
 
       {/* Cena 3D + retrato sobreposto */}
       <div className="relative flex-1 min-h-0">
@@ -141,21 +154,25 @@ export default function Game({
             transitioning ? "opacity-100" : "opacity-0"
           }`}
         />
-        {/* Setas point-and-click laterais */}
-        <button
-          onClick={goPrev}
-          aria-label="Cômodo anterior"
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-11 h-16 sm:w-14 sm:h-20 rounded-2xl bg-card-soft/70 hover:bg-primary/30 border border-primary/40 backdrop-blur-md flex items-center justify-center shadow-glow text-primary-glow transition-all"
-        >
-          <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
-        </button>
-        <button
-          onClick={goNext}
-          aria-label="Próximo cômodo"
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-11 h-16 sm:w-14 sm:h-20 rounded-2xl bg-card-soft/70 hover:bg-primary/30 border border-primary/40 backdrop-blur-md flex items-center justify-center shadow-glow text-primary-glow transition-all"
-        >
-          <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
-        </button>
+        {/* Setas point-and-click laterais (ocultam com HUD) */}
+        {!hudHidden && (
+          <>
+            <button
+              onClick={goPrev}
+              aria-label="Cômodo anterior"
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-11 h-16 sm:w-14 sm:h-20 rounded-2xl bg-card-soft/70 hover:bg-primary/30 border border-primary/40 backdrop-blur-md flex items-center justify-center shadow-glow text-primary-glow transition-all"
+            >
+              <ChevronLeft className="w-6 h-6 sm:w-7 sm:h-7" />
+            </button>
+            <button
+              onClick={goNext}
+              aria-label="Próximo cômodo"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-11 h-16 sm:w-14 sm:h-20 rounded-2xl bg-card-soft/70 hover:bg-primary/30 border border-primary/40 backdrop-blur-md flex items-center justify-center shadow-glow text-primary-glow transition-all"
+            >
+              <ChevronRight className="w-6 h-6 sm:w-7 sm:h-7" />
+            </button>
+          </>
+        )}
         {portrait && (
           <div className="pointer-events-none absolute inset-0 flex items-end justify-center z-10">
             <img
@@ -166,6 +183,7 @@ export default function Game({
             />
           </div>
         )}
+        {!hudHidden && (
         <div className="absolute top-16 left-3 flex flex-col gap-2 z-20">
           <div className="bg-card-soft border border-border/60 rounded-lg px-2.5 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
             {room} · {MOOD_LABELS[gameState.mood]}
@@ -182,12 +200,15 @@ export default function Game({
             <KeyRound className="w-3.5 h-3.5 mr-2" /> tentar a porta ({discoveredClues.length}/4)
           </Button>
         </div>
+        )}
       </div>
 
-      {/* Chat */}
-      <div className="h-[44%] sm:h-[40%] min-h-[260px] z-20">
-        <ChatPanel character={character} messages={messages} setMessages={setMessages} mood={gameState.mood} persuasion={gameState.persuasion} suspicion={gameState.suspicion} />
-      </div>
+      {/* Chat (oculta com HUD) */}
+      {!hudHidden && (
+        <div className="h-[44%] sm:h-[40%] min-h-[260px] z-20">
+          <ChatPanel character={character} messages={messages} setMessages={setMessages} mood={gameState.mood} persuasion={gameState.persuasion} suspicion={gameState.suspicion} />
+        </div>
+      )}
 
       {paused && (
         <PauseMenu
