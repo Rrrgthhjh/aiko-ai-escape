@@ -1,5 +1,6 @@
 export type Character = {
   name: string;
+  playerName: string;
   skin: string;
   hair: string;
   eyes: string;
@@ -28,6 +29,7 @@ export type SaveState = {
 
 export const DEFAULT_CHARACTER: Character = {
   name: "Aiko",
+  playerName: "",
   skin: "Clara",
   hair: "Longo preto azulado",
   eyes: "Violeta",
