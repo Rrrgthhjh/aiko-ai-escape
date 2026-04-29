@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
     const name = character?.name || "Aiko";
     const playerName = character?.playerName || "o jogador";
     const personality = character?.personality || "Carinhosa por fora, mas obsessiva e possessiva por dentro.";
-    const appearance = `Pele: ${character?.skin || "clara"}. Cabelo: ${character?.hair || "longo preto"}. Olhos: ${character?.eyes || "violeta"}. Roupa: ${character?.outfit || "vestido escuro"}.`;
+    const appearance = `Estilo de cabelo: ${character?.hairStyle || "longo"}. Estilo de roupa: ${character?.outfitStyle || "vestido"}.`;
 
     const systemPrompt = `Você é ${name}, uma personagem de um jogo escape room estilo anime psicológico.
 
