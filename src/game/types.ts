@@ -1,12 +1,17 @@
 export type Character = {
   name: string;
   playerName: string;
-  skin: string;
-  hair: string;
-  eyes: string;
-  outfit: string;
+  skinColor: string;      // hex
+  hairColor: string;      // hex
+  hairStyle: HairStyle;
+  eyeColor: string;       // hex
+  outfitColor: string;    // hex
+  outfitStyle: OutfitStyle;
   personality: string;
 };
+
+export type HairStyle = "long" | "short" | "twin" | "bob" | "ponytail";
+export type OutfitStyle = "dress" | "uniform" | "hoodie" | "yukata";
 
 export type ChatMessage = {
   id: string;
@@ -21,7 +26,7 @@ export type Mood = "calm" | "soft" | "tense" | "angry" | "hopeful";
 
 export type SaveState = {
   character: Character;
-  portrait: string | null; // data URL
+  portrait?: string | null; // legado — não usado mais
   messages: ChatMessage[];
   warningSeen: boolean;
   discoveredClues?: string[];
@@ -30,9 +35,11 @@ export type SaveState = {
 export const DEFAULT_CHARACTER: Character = {
   name: "Aiko",
   playerName: "",
-  skin: "Clara",
-  hair: "Longo preto azulado",
-  eyes: "Violeta",
-  outfit: "Vestido escuro com detalhes brancos",
+  skinColor: "#f5d6c0",
+  hairColor: "#1a1530",
+  hairStyle: "long",
+  eyeColor: "#8b5cf6",
+  outfitColor: "#2a1f3d",
+  outfitStyle: "dress",
   personality: "Doce e atenciosa por fora, possessiva por dentro.",
 };
