@@ -8,6 +8,9 @@ Deno.serve(async (req) => {
 
   try {
     const { messages, character } = await req.json();
+    // Otimização de custo: mantém só as últimas N mensagens do histórico
+    const HISTORY_LIMIT = 12;
+    const trimmedMessages = Array.isArray(messages) ? messages.slice(-HISTORY_LIMIT) : [];
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -42,9 +45,10 @@ Comece sempre suas respostas direto, sem prefixo de nome.`;
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [{ role: "system", content: systemPrompt }, ...messages],
+        model: "google/gemini-2.5-flash-lite",
+        messages: [{ role: "system", content: systemPrompt }, ...trimmedMessages],
         stream: true,
+        max_tokens: 180,
       }),
     });
 
