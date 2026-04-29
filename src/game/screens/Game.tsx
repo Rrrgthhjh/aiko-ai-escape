@@ -175,12 +175,18 @@ export default function Game({
         )}
         {portrait && (
           <div className="pointer-events-none absolute inset-0 flex items-end justify-center z-10">
-            <img
-              src={portrait}
-              alt={character.name}
-              className={`h-[78%] sm:h-[92%] max-h-[640px] w-auto object-contain select-none transition-all duration-700 ${expressionStyles[gameState.mood]}`}
-              style={{ filter: "drop-shadow(0 18px 32px hsl(var(--primary) / 0.45))" }}
-            />
+            {/* Camada 1: balanço lateral lento (peso/postura) */}
+            <div className="animate-char-sway origin-bottom h-[78%] sm:h-[92%] max-h-[640px] flex items-end">
+              {/* Camada 2: respiração (sobe/desce sutil) */}
+              <div className="animate-char-breathe h-full flex items-end">
+                <img
+                  src={portrait}
+                  alt={character.name}
+                  className={`h-full w-auto object-contain select-none transition-all duration-700 animate-char-blink ${expressionStyles[gameState.mood]}`}
+                  style={{ filter: "drop-shadow(0 18px 32px hsl(var(--primary) / 0.45))", transformOrigin: "bottom center" }}
+                />
+              </div>
+            </div>
           </div>
         )}
         {!hudHidden && (
