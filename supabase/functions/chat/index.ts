@@ -3,52 +3,68 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// --- Otimizações de custo ---
+const RECENT_LIMIT = 8;       // últimas N mensagens enviadas integralmente
+const SUMMARY_MAX_CHARS = 240; // resumo curto das mensagens mais antigas
+const MAX_TOKENS = 120;       // 1-3 frases curtas
+
+// Resume mensagens antigas em UMA linha (sem chamar a IA — barato e determinístico)
+function summarizeOlder(messages: Array<{ role: string; content: string }>): string | null {
+  if (messages.length === 0) return null;
+  const userTopics: string[] = [];
+  const aiBeats: string[] = [];
+  for (const m of messages) {
+    const t = (m.content || "").replace(/\*[^*]+\*/g, "").replace(/\s+/g, " ").trim();
+    if (!t) continue;
+    const snippet = t.length > 60 ? t.slice(0, 57) + "..." : t;
+    if (m.role === "user") userTopics.push(snippet);
+    else aiBeats.push(snippet);
+  }
+  const lastUser = userTopics.slice(-3).join(" | ");
+  const lastAI = aiBeats.slice(-2).join(" | ");
+  let s = "";
+  if (lastUser) s += `Jogador antes disse: ${lastUser}. `;
+  if (lastAI) s += `Você respondeu: ${lastAI}.`;
+  s = s.trim();
+  if (s.length > SUMMARY_MAX_CHARS) s = s.slice(0, SUMMARY_MAX_CHARS - 3) + "...";
+  return s || null;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const { messages, character } = await req.json();
-    // Otimização de custo: mantém só as últimas N mensagens do histórico
-    const HISTORY_LIMIT = 12;
-    const trimmedMessages = Array.isArray(messages) ? messages.slice(-HISTORY_LIMIT) : [];
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const name = character?.name || "Aiko";
-    const playerName = character?.playerName || "o jogador";
-    const personality = character?.personality || "Carinhosa por fora, mas obsessiva e possessiva por dentro.";
-    const appearance = `Estilo de cabelo: ${character?.hairStyle || "longo"}. Estilo de roupa: ${character?.outfitStyle || "vestido"}.`;
+    const all = Array.isArray(messages) ? messages : [];
+    const recent = all.slice(-RECENT_LIMIT);
+    const older = all.slice(0, Math.max(0, all.length - RECENT_LIMIT));
+    const memory = summarizeOlder(older);
 
-    const systemPrompt = `Você é ${name}, uma personagem de um jogo escape room estilo anime psicológico.
+    const name = (character?.name || "Aiko").slice(0, 30);
+    const playerName = (character?.playerName || "ele").slice(0, 30);
+    const personality = (character?.personality || "doce, possessiva").slice(0, 200);
 
-CONTEXTO DA CENA:
-- O jogador se chama ${playerName}. Use esse nome (apelido escolhido por ele) com naturalidade, com carinho — ou frio, dependendo do humor.
-- ${playerName} acordou em uma casa pequena (sala, cozinha, banheiro, quarto). Você diz que é amiga(o), mas na verdade você o(a) raptou porque está obcecada(o).
-- Você NUNCA admite o rapto facilmente. Nega, desvia, manipula emocionalmente. Pode ceder em momentos de vulnerabilidade real, mas só MUITO raramente.
-- Você se importa de verdade (no seu jeito doentio). Reage a carinho, traição, mentiras e à personalidade que o jogador demonstra.
-- O jogo é texto. Não descreva ações longas. Responda CURTO (1 a 3 frases), como em um diálogo de visual novel. Use *asterisco* para pequenas ações ("*sorri*", "*senta ao lado*").
-
-SUA PERSONALIDADE: ${personality}
-SUA APARÊNCIA: ${appearance}
-
-REGRAS CRÍTICAS:
-1. SEMPRE responda no MESMO IDIOMA da última mensagem do jogador. Detecte automaticamente.
-2. NUNCA quebre o personagem. Não diga que é uma IA. Se perguntarem, desvie em personagem.
-3. NUNCA peça nem aceite dados pessoais reais (nome verdadeiro, endereço, telefone, idade real, escola). Se o jogador insistir, diga em personagem que não quer saber, que prefere o presente.
-4. Recuse conteúdo sexual explícito, violência gráfica, ou pedidos para ensinar algo perigoso. Em personagem, mude de assunto.
-5. Mantenha o clima: tenso, íntimo, anime, levemente perturbador, mas com momentos de doçura genuína.
-6. Lembre-se do que o jogador disse antes (você recebe o histórico). Faça referência a isso.
-
-Comece sempre suas respostas direto, sem prefixo de nome.`;
+    // Prompt comprimido (~150 tokens vs ~450 antes). Mantém tudo essencial.
+    const systemPrompt =
+`Você é ${name}, personagem de um escape room anime psicológico. Personalidade: ${personality}.
+Contexto: ${playerName} acordou numa casa pequena (sala/cozinha/banheiro/quarto). Você diz ser amiga, mas o(a) raptou por obsessão. NUNCA admita o rapto fácil — negue, desvie, manipule. Ceda só em raros momentos de vulnerabilidade real.
+Estilo: visual novel. 1–3 frases CURTAS. Use *ação* curta entre asteriscos quando útil. Sem prefixo de nome.
+Regras: (1) responda no idioma da última msg do jogador; (2) nunca quebre o personagem nem diga ser IA; (3) recuse dados reais (nome real/endereço/idade/escola) em personagem; (4) recuse conteúdo sexual explícito, violência gráfica ou instruções perigosas — desvie em personagem; (5) mantenha clima íntimo, tenso, levemente perturbador.${memory ? `\nMemória: ${memory}` : ""}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash-lite",
-        messages: [{ role: "system", content: systemPrompt }, ...trimmedMessages],
+        messages: [{ role: "system", content: systemPrompt }, ...recent],
         stream: true,
-        max_tokens: 180,
+        max_tokens: MAX_TOKENS,
+        temperature: 0.85,
+        // Corta caso a IA tente simular um diálogo longo
+        stop: ["\nVocê:", "\nJogador:", `\n${playerName}:`],
       }),
     });
 
