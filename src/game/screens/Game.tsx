@@ -5,10 +5,9 @@ import Scene3D from "../components/Scene3D";
 import ChatPanel from "../components/ChatPanel";
 import PauseMenu from "../components/PauseMenu";
 import RoomPicker from "../components/RoomPicker";
-import Loading from "./Loading";
+import AvatarSVG from "../components/AvatarSVG";
 import type { SaveState, Character, ChatMessage, Mood, Room } from "../types";
 import { writeSave } from "../storage";
-import { generatePortrait } from "../chat";
 import { toast } from "sonner";
 import { analyzeGameState, MOOD_LABELS, ROOM_CLUES } from "../gameState";
 import { playRoomAmbience, stopAmbience } from "../audio";
@@ -17,11 +16,9 @@ export default function Game({
   initial, onExit,
 }: { initial: SaveState; onExit: () => void }) {
   const [character, setCharacter] = useState<Character>(initial.character);
-  const [portrait, setPortrait] = useState<string | null>(initial.portrait);
   const [messages, _setMessages] = useState<ChatMessage[]>(initial.messages);
   const [room, setRoom] = useState<Room>("sala");
   const [paused, setPaused] = useState(false);
-  const [regenLoading, setRegenLoading] = useState(false);
   const [discoveredClues, setDiscoveredClues] = useState<string[]>(initial.discoveredClues ?? []);
   const [hudHidden, setHudHidden] = useState(false);
   const ROOM_ORDER: Room[] = ["sala", "cozinha", "banheiro", "quarto"];
@@ -51,16 +48,16 @@ export default function Game({
   const setMessages = (updater: (m: ChatMessage[]) => ChatMessage[]) => {
     _setMessages((prev) => {
       const next = updater(prev);
-      writeSave({ character, portrait, messages: next, warningSeen: true, discoveredClues });
+      writeSave({ character, portrait: null, messages: next, warningSeen: true, discoveredClues });
       return next;
     });
   };
 
-  // persiste personagem/retrato
+  // persiste personagem
   useEffect(() => {
-    writeSave({ character, portrait, messages, warningSeen: true, discoveredClues });
+    writeSave({ character, portrait: null, messages, warningSeen: true, discoveredClues });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [character, portrait, discoveredClues]);
+  }, [character, discoveredClues]);
 
   // Ambiente sonoro por cômodo
   useEffect(() => {
@@ -71,7 +68,7 @@ export default function Game({
 
   const handleClearMemory = () => {
     _setMessages(() => {
-      writeSave({ character, portrait, messages: [], warningSeen: true, discoveredClues });
+      writeSave({ character, portrait: null, messages: [], warningSeen: true, discoveredClues });
       return [];
     });
     toast.success(`${character.name} esqueceu tudo.`);
@@ -85,7 +82,7 @@ export default function Game({
     setDiscoveredClues(nextClues);
     _setMessages((prev) => {
       const next = [...prev, clueMsg];
-      writeSave({ character, portrait, messages: next, warningSeen: true, discoveredClues: nextClues });
+      writeSave({ character, portrait: null, messages: next, warningSeen: true, discoveredClues: nextClues });
       return next;
     });
   };
@@ -98,27 +95,18 @@ export default function Game({
     const doorMsg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content, ts: Date.now() };
     _setMessages((prev) => {
       const next = [...prev, doorMsg];
-      writeSave({ character, portrait, messages: next, warningSeen: true, discoveredClues });
+      writeSave({ character, portrait: null, messages: next, warningSeen: true, discoveredClues });
       return next;
     });
   };
 
   const handleUpdateCharacter = async (c: Character) => {
-    setRegenLoading(true);
-    try {
-      const img = await generatePortrait(c);
-      setCharacter(c);
-      setPortrait(img);
-      _setMessages(() => {
-        writeSave({ character: c, portrait: img, messages: [], warningSeen: true });
-        return [];
-      });
-      toast.success("A IA mudou. A memória foi apagada.");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Falha ao atualizar");
-    } finally {
-      setRegenLoading(false);
-    }
+    setCharacter(c);
+    _setMessages(() => {
+      writeSave({ character: c, portrait: null, messages: [], warningSeen: true, discoveredClues });
+      return [];
+    });
+    toast.success("A IA mudou. A memória foi apagada.");
   };
 
   return (
@@ -173,22 +161,17 @@ export default function Game({
             </button>
           </>
         )}
-        {portrait && (
-          <div className="pointer-events-none absolute inset-0 flex items-end justify-center z-10">
-            {/* Camada 1: balanço lateral lento (peso/postura) */}
-            <div className="animate-char-sway origin-bottom h-[78%] sm:h-[92%] max-h-[640px] flex items-end">
-              {/* Camada 2: respiração (sobe/desce sutil) */}
-              <div className="animate-char-breathe h-full flex items-end">
-                <img
-                  src={portrait}
-                  alt={character.name}
-                  className={`h-full w-auto object-contain select-none transition-all duration-700 animate-char-blink ${expressionStyles[gameState.mood]}`}
-                  style={{ filter: "drop-shadow(0 18px 32px hsl(var(--primary) / 0.45))", transformOrigin: "bottom center" }}
-                />
-              </div>
+        <div className="pointer-events-none absolute inset-0 flex items-end justify-center z-10">
+          <div className="animate-char-sway origin-bottom h-[78%] sm:h-[92%] max-h-[640px] flex items-end">
+            <div className="animate-char-breathe h-full flex items-end">
+              <AvatarSVG
+                character={character}
+                className={`h-full w-auto select-none transition-all duration-700 animate-char-blink ${expressionStyles[gameState.mood]}`}
+                style={{ filter: "drop-shadow(0 18px 32px hsl(var(--primary) / 0.45))" }}
+              />
             </div>
           </div>
-        )}
+        </div>
         {!hudHidden && (
         <div className="absolute top-16 left-3 flex flex-col gap-2 z-20">
           <div className="bg-card-soft border border-border/60 rounded-lg px-2.5 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -221,13 +204,11 @@ export default function Game({
           character={character}
           messages={messages}
           onClose={() => setPaused(false)}
-          onSaveExit={() => { writeSave({ character, portrait, messages, warningSeen: true, discoveredClues }); onExit(); }}
+          onSaveExit={() => { writeSave({ character, portrait: null, messages, warningSeen: true, discoveredClues }); onExit(); }}
           onClearMemory={handleClearMemory}
           onUpdateCharacter={handleUpdateCharacter}
         />
       )}
-
-      {regenLoading && <Loading label="Redesenhando ela..." />}
     </div>
   );
 }
