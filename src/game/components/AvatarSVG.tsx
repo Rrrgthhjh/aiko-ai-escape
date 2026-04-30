@@ -267,11 +267,9 @@ function Legs({ skin, s1, sL, outfit, oD, isSkirt, outfitStyle }: { skin: string
       {/* Skin (calves or lower legs) */}
       {isSkirt && (
         <>
-          <path d="M124,{LY} Q122,{LY2} 120,635 Q120,642 126,644 L138,644 Q142,642 141,635 Q140,{LY2} 138,{LY} Z"
-            .replace(/\{LY\}/g, String(legSkinY)).replace(/\{LY2\}/g, String(legSkinY + 50))
+          <path d={`M124,${legSkinY} Q122,${legSkinY+50} 120,635 Q120,642 126,644 L138,644 Q142,642 141,635 Q140,${legSkinY+50} 138,${legSkinY} Z`}
             fill={skin} />
-          <path d="M162,{LY} Q164,{LY2} 166,635 Q166,642 160,644 L148,644 Q144,642 145,635 Q146,{LY2} 148,{LY} Z"
-            .replace(/\{LY\}/g, String(legSkinY)).replace(/\{LY2\}/g, String(legSkinY + 50))
+          <path d={`M162,${legSkinY} Q164,${legSkinY+50} 166,635 Q166,642 160,644 L148,644 Q144,642 145,635 Q146,${legSkinY+50} 148,${legSkinY} Z`}
             fill={skin} />
           {/* Knee highlight */}
           <ellipse cx="131" cy={legSkinY + 35} rx="5" ry="8" fill={sL} opacity="0.12" />
