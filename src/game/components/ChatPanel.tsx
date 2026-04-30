@@ -151,7 +151,6 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder={`Fale com ${character.name}...`}
           rows={1}
-          maxLength={600}
           maxLength={settings.maxMessageLength}
           className="flex-1 resize-none bg-input/80 border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/60 max-h-32"
         />
