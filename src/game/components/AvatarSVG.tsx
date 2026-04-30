@@ -1,9 +1,12 @@
+import { useMemo } from "react";
 import type { Character, HairStyle, OutfitStyle } from "../types";
 
-/**
- * Avatar SVG de alta qualidade — estilo anime/visual novel.
- * Proporções mais realistas, sombreamento com gradientes, detalhes refinados.
- * ViewBox 240x600 para mais resolução e proporção corporal natural.
+/*
+ * Realistic full-body SVG avatar.
+ * Proportions: ~1:6.5 head-to-body, natural anatomy.
+ * Smaller, realistic eyes; defined nose & lips; anatomical body curves.
+ * Rich gradient shading for 3D depth.
+ * ViewBox 300×750 for high detail.
  */
 export default function AvatarSVG({
   character,
@@ -15,430 +18,489 @@ export default function AvatarSVG({
   style?: React.CSSProperties;
 }) {
   const skin = character.skinColor;
-  const skinDark = shade(skin, -15);
-  const skinLight = shade(skin, 12);
+  const s1 = shade(skin, -10);
+  const s2 = shade(skin, -20);
+  const sL = shade(skin, 10);
+  const sHL = shade(skin, 18);
   const hair = character.hairColor;
-  const hairDark = shade(hair, -22);
-  const hairLight = shade(hair, 16);
+  const hD = shade(hair, -25);
+  const hL = shade(hair, 18);
   const eye = character.eyeColor;
-  const eyeDark = shade(eye, -30);
-  const eyeLight = shade(eye, 25);
+  const eD = shade(eye, -35);
+  const eL = shade(eye, 28);
   const outfit = character.outfitColor;
-  const outfitDark = shade(outfit, -18);
-  const outfitLight = shade(outfit, 20);
-  const outfitMid = shade(outfit, -8);
+  const oD = shade(outfit, -20);
+  const oL = shade(outfit, 22);
+  const oM = shade(outfit, -8);
 
-  const uid = "av" + Math.random().toString(36).slice(2, 7);
+  // Stable unique ID per instance
+  const uid = useMemo(() => "r" + Math.random().toString(36).slice(2, 7), []);
+
+  const isSkirt = character.outfitStyle === "dress" || character.outfitStyle === "yukata" || character.outfitStyle === "uniform";
 
   return (
-    <svg
-      viewBox="0 0 240 600"
-      xmlns="http://www.w3.org/2000/svg"
-      className={className}
-      style={style}
-      preserveAspectRatio="xMidYMax meet"
-    >
+    <svg viewBox="0 0 300 750" xmlns="http://www.w3.org/2000/svg" className={className} style={style} preserveAspectRatio="xMidYMax meet">
       <defs>
-        {/* Skin gradient for face depth */}
-        <radialGradient id={`${uid}-face`} cx="50%" cy="40%" r="55%">
-          <stop offset="0%" stopColor={skinLight} />
-          <stop offset="70%" stopColor={skin} />
-          <stop offset="100%" stopColor={skinDark} />
+        {/* Face radial */}
+        <radialGradient id={`${uid}f`} cx="48%" cy="38%" r="52%">
+          <stop offset="0%" stopColor={sHL} />
+          <stop offset="55%" stopColor={skin} />
+          <stop offset="100%" stopColor={s1} />
         </radialGradient>
-        {/* Eye iris radial */}
-        <radialGradient id={`${uid}-iris`} cx="50%" cy="35%" r="60%">
-          <stop offset="0%" stopColor={eyeLight} />
-          <stop offset="50%" stopColor={eye} />
-          <stop offset="100%" stopColor={eyeDark} />
+        {/* Body skin gradient */}
+        <linearGradient id={`${uid}bs`} x1="0" y1="0" x2="0.15" y2="1">
+          <stop offset="0%" stopColor={sL} />
+          <stop offset="100%" stopColor={s1} />
+        </linearGradient>
+        {/* Iris */}
+        <radialGradient id={`${uid}ir`} cx="50%" cy="40%" r="55%">
+          <stop offset="0%" stopColor={eL} />
+          <stop offset="55%" stopColor={eye} />
+          <stop offset="100%" stopColor={eD} />
         </radialGradient>
-        {/* Hair sheen */}
-        <linearGradient id={`${uid}-hair`} x1="0" y1="0" x2="0.3" y2="1">
-          <stop offset="0%" stopColor={hairLight} stopOpacity="0.7" />
-          <stop offset="40%" stopColor={hair} />
-          <stop offset="100%" stopColor={hairDark} />
+        {/* Hair gradient */}
+        <linearGradient id={`${uid}h`} x1="0.2" y1="0" x2="0.5" y2="1">
+          <stop offset="0%" stopColor={hL} stopOpacity="0.65" />
+          <stop offset="35%" stopColor={hair} />
+          <stop offset="100%" stopColor={hD} />
         </linearGradient>
         {/* Outfit gradient */}
-        <linearGradient id={`${uid}-outfit`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={outfitLight} stopOpacity="0.8" />
-          <stop offset="50%" stopColor={outfit} />
-          <stop offset="100%" stopColor={outfitDark} />
+        <linearGradient id={`${uid}o`} x1="0" y1="0" x2="0.1" y2="1">
+          <stop offset="0%" stopColor={oL} stopOpacity="0.75" />
+          <stop offset="45%" stopColor={outfit} />
+          <stop offset="100%" stopColor={oD} />
         </linearGradient>
-        {/* Soft shadow filter */}
-        <filter id={`${uid}-shadow`} x="-20%" y="-10%" width="140%" height="130%">
-          <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
-          <feOffset dy="4" />
-          <feComponentTransfer><feFuncA type="linear" slope="0.25" /></feComponentTransfer>
+        {/* Lip gradient */}
+        <linearGradient id={`${uid}lip`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#c4606e" />
+          <stop offset="100%" stopColor="#8a3545" />
+        </linearGradient>
+        {/* Soft shadow */}
+        <filter id={`${uid}sh`} x="-15%" y="-8%" width="130%" height="120%">
+          <feGaussianBlur in="SourceAlpha" stdDeviation="4" />
+          <feOffset dy="5" />
+          <feComponentTransfer><feFuncA type="linear" slope="0.18" /></feComponentTransfer>
           <feMerge><feMergeNode /><feMergeNode in="SourceGraphic" /></feMerge>
         </filter>
-        {/* Blush filter */}
-        <filter id={`${uid}-blush`}>
-          <feGaussianBlur stdDeviation="4" />
-        </filter>
+        <filter id={`${uid}bl`}><feGaussianBlur stdDeviation="5" /></filter>
+        {/* Ambient occlusion for neck */}
+        <radialGradient id={`${uid}nk`} cx="50%" cy="0%" r="80%">
+          <stop offset="0%" stopColor={s2} stopOpacity="0.4" />
+          <stop offset="100%" stopColor={s2} stopOpacity="0" />
+        </radialGradient>
       </defs>
 
-      {/* === LEGS === */}
+      {/* ===== LEGS ===== */}
+      <Legs skin={skin} s1={s1} sL={sL} outfit={outfit} oD={oD} isSkirt={isSkirt} outfitStyle={character.outfitStyle} />
+
+      {/* ===== OUTFIT / TORSO ===== */}
+      <OutfitBody style={character.outfitStyle} color={outfit} dark={oD} light={oL} mid={oM} uid={uid} skin={skin} s1={s1} />
+
+      {/* ===== ARMS ===== */}
+      <Arms skin={skin} s1={s1} sL={sL} s2={s2} outfit={outfit} oD={oD} uid={uid} />
+
+      {/* ===== NECK ===== */}
       <g>
-        {character.outfitStyle !== "dress" && character.outfitStyle !== "yukata" && (
-          <>
-            {/* Thighs in outfit color */}
-            <path d="M91,395 Q88,420 86,470 Q86,478 92,480 L100,480 Q104,478 103,470 Q102,420 100,395 Z" fill={outfitDark} />
-            <path d="M137,395 Q140,420 142,470 Q142,478 136,480 L128,480 Q124,478 125,470 Q126,420 128,395 Z" fill={outfitDark} />
-          </>
-        )}
-        {/* Calves/skin visible below skirt or always for pants */}
-        {(character.outfitStyle === "dress" || character.outfitStyle === "yukata") ? (
-          <>
-            <path d="M93,430 Q91,465 90,510 Q90,518 96,520 L104,520 Q108,518 107,510 Q106,465 105,430 Z" fill={skin} />
-            <path d="M133,430 Q135,465 136,510 Q136,518 130,520 L122,520 Q118,518 119,510 Q120,465 123,430 Z" fill={skin} />
-            {/* Inner leg shadow */}
-            <path d="M100,435 Q102,465 104,510" stroke={skinDark} strokeWidth="1.5" fill="none" opacity="0.3" />
-            <path d="M128,435 Q126,465 124,510" stroke={skinDark} strokeWidth="1.5" fill="none" opacity="0.3" />
-          </>
-        ) : (
-          <>
-            <path d="M90,475 Q89,500 88,530 Q88,536 94,538 L102,538 Q106,536 105,530 Q104,500 103,475 Z" fill={skin} />
-            <path d="M125,475 Q126,500 127,530 Q127,536 121,538 L113,538 Q109,536 110,530 Q111,500 112,475 Z" fill={skin} />
-          </>
-        )}
-        {/* Shoes with subtle highlight */}
-        {(() => {
-          const sy = character.outfitStyle === "dress" || character.outfitStyle === "yukata" ? 520 : 536;
-          return (
-            <>
-              <ellipse cx="98" cy={sy} rx="16" ry="7" fill="#1a1320" />
-              <ellipse cx="98" cy={sy - 1} rx="12" ry="4" fill="#2a2338" opacity="0.5" />
-              <ellipse cx="128" cy={sy} rx="16" ry="7" fill="#1a1320" />
-              <ellipse cx="128" cy={sy - 1} rx="12" ry="4" fill="#2a2338" opacity="0.5" />
-            </>
-          );
-        })()}
+        <path d="M137,222 Q136,240 134,258 L166,258 Q164,240 163,222 Z" fill={`url(#${uid}bs)`} />
+        <ellipse cx="150" cy="230" rx="16" ry="5" fill={`url(#${uid}nk)`} />
+        {/* Subtle throat shadow */}
+        <path d="M143,248 Q150,252 157,248" stroke={s2} strokeWidth="0.8" fill="none" opacity="0.25" />
       </g>
 
-      {/* === OUTFIT / TORSO === */}
-      <Outfit style={character.outfitStyle} color={outfit} dark={outfitDark} light={outfitLight} mid={outfitMid} gid={uid} />
+      {/* ===== HEAD ===== */}
+      <g filter={`url(#${uid}sh)`}>
+        <HairBack style={character.hairStyle} color={hair} dark={hD} light={hL} uid={uid} />
 
-      {/* === ARMS === */}
-      <g filter={`url(#${uid}-shadow)`}>
-        {/* Left arm */}
-        <path d="M62,240 Q56,260 52,300 Q48,340 54,370 Q58,378 62,370 Q66,340 68,305 Q70,270 72,248 Z" fill={outfit} />
-        <path d="M62,240 Q58,260 56,290" stroke={outfitDark} strokeWidth="1.5" fill="none" opacity="0.4" />
-        {/* Left hand */}
+        {/* Face — more oval/tapered chin for realistic look */}
+        <path d="M108,170 Q100,140 105,115 Q112,90 150,85 Q188,90 195,115 Q200,140 192,170 Q186,200 170,218 Q160,226 150,228 Q140,226 130,218 Q114,200 108,170 Z" fill={`url(#${uid}f)`} />
+
+        {/* Jaw contour shadow */}
+        <path d="M112,175 Q120,205 140,222 Q150,228 160,222 Q180,205 188,175" stroke={s2} strokeWidth="0.7" fill="none" opacity="0.18" />
+
+        {/* Cheekbone highlights */}
+        <ellipse cx="122" cy="165" rx="12" ry="6" fill={sHL} opacity="0.2" />
+        <ellipse cx="178" cy="165" rx="12" ry="6" fill={sHL} opacity="0.2" />
+
+        {/* Ears */}
+        <path d="M108,148 Q100,138 100,150 Q100,162 108,158" fill={skin} />
+        <path d="M103,146 Q102,150 103,154" stroke={s1} strokeWidth="0.8" fill="none" opacity="0.4" />
+        <path d="M192,148 Q200,138 200,150 Q200,162 192,158" fill={skin} />
+        <path d="M197,146 Q198,150 197,154" stroke={s1} strokeWidth="0.8" fill="none" opacity="0.4" />
+
+        {/* ── EYES (realistic: smaller, almond-shaped) ── */}
         <g>
-          <ellipse cx="58" cy="374" rx="11" ry="13" fill={skin} />
-          <ellipse cx="58" cy="374" rx="8" ry="10" fill={skinLight} opacity="0.3" />
-          {/* Fingers suggestion */}
-          <path d="M50,370 Q47,378 50,383" stroke={skinDark} strokeWidth="1" fill="none" opacity="0.3" />
-          <path d="M54,368 Q52,380 54,386" stroke={skinDark} strokeWidth="0.8" fill="none" opacity="0.2" />
-        </g>
-        {/* Right arm */}
-        <path d="M166,240 Q172,260 176,300 Q180,340 174,370 Q170,378 166,370 Q162,340 160,305 Q158,270 156,248 Z" fill={outfit} />
-        <path d="M166,240 Q170,260 172,290" stroke={outfitDark} strokeWidth="1.5" fill="none" opacity="0.4" />
-        {/* Right hand */}
-        <g>
-          <ellipse cx="170" cy="374" rx="11" ry="13" fill={skin} />
-          <ellipse cx="170" cy="374" rx="8" ry="10" fill={skinLight} opacity="0.3" />
-          <path d="M178,370 Q181,378 178,383" stroke={skinDark} strokeWidth="1" fill="none" opacity="0.3" />
-          <path d="M174,368 Q176,380 174,386" stroke={skinDark} strokeWidth="0.8" fill="none" opacity="0.2" />
-        </g>
-      </g>
+          {/* Socket shadow */}
+          <ellipse cx="132" cy="155" rx="13" ry="6" fill={s1} opacity="0.08" />
+          <ellipse cx="168" cy="155" rx="13" ry="6" fill={s1} opacity="0.08" />
 
-      {/* === NECK === */}
-      <g>
-        <path d="M107,195 Q106,210 104,222 L124,222 Q122,210 121,195 Z" fill={skin} />
-        <path d="M108,215 Q114,218 120,215" stroke={skinDark} strokeWidth="1.2" fill="none" opacity="0.35" />
-        {/* Neck shadow from chin */}
-        <ellipse cx="114" cy="198" rx="12" ry="4" fill={skinDark} opacity="0.25" />
-      </g>
+          {/* White (sclera) — almond shape */}
+          <path d="M120,155 Q126,146 132,144 Q138,146 144,155 Q138,161 132,162 Q126,161 120,155 Z" fill="#f8f8fa" />
+          <path d="M156,155 Q162,146 168,144 Q174,146 180,155 Q174,161 168,162 Q162,161 156,155 Z" fill="#f8f8fa" />
 
-      {/* === HEAD === */}
-      <g filter={`url(#${uid}-shadow)`}>
-        {/* Hair back layer */}
-        <HairBack style={character.hairStyle} color={hair} dark={hairDark} light={hairLight} gid={uid} />
+          {/* Sclera shadow (upper) */}
+          <path d="M122,154 Q132,148 142,154" fill={s1} opacity="0.06" />
+          <path d="M158,154 Q168,148 178,154" fill={s1} opacity="0.06" />
 
-        {/* Face - oval with gradient for depth */}
-        <ellipse cx="114" cy="148" rx="42" ry="52" fill={`url(#${uid}-face)`} />
+          {/* Iris — circular, realistic size */}
+          <circle cx="132" cy="154" r="6.5" fill={`url(#${uid}ir)`} />
+          <circle cx="168" cy="154" r="6.5" fill={`url(#${uid}ir)`} />
 
-        {/* Jaw definition */}
-        <path d="M78,162 Q90,192 114,198 Q138,192 150,162" stroke={skinDark} strokeWidth="0.8" fill="none" opacity="0.2" />
+          {/* Iris limbal ring */}
+          <circle cx="132" cy="154" r="6.5" fill="none" stroke={eD} strokeWidth="0.7" opacity="0.5" />
+          <circle cx="168" cy="154" r="6.5" fill="none" stroke={eD} strokeWidth="0.7" opacity="0.5" />
 
-        {/* Ears with inner detail */}
-        <ellipse cx="72" cy="150" rx="6" ry="10" fill={skin} />
-        <ellipse cx="72" cy="150" rx="3.5" ry="6" fill={skinDark} opacity="0.3" />
-        <ellipse cx="156" cy="150" rx="6" ry="10" fill={skin} />
-        <ellipse cx="156" cy="150" rx="3.5" ry="6" fill={skinDark} opacity="0.3" />
-
-        {/* === EYES === */}
-        <g>
-          {/* Eye sockets shadow */}
-          <ellipse cx="96" cy="148" rx="14" ry="8" fill={skinDark} opacity="0.1" />
-          <ellipse cx="132" cy="148" rx="14" ry="8" fill={skinDark} opacity="0.1" />
-
-          {/* Whites with subtle gradient */}
-          <ellipse cx="96" cy="148" rx="12" ry="13" fill="#fafafa" />
-          <ellipse cx="132" cy="148" rx="12" ry="13" fill="#fafafa" />
-          {/* Bottom shadow on white */}
-          <ellipse cx="96" cy="155" rx="10" ry="5" fill="#e8e8f0" opacity="0.5" />
-          <ellipse cx="132" cy="155" rx="10" ry="5" fill="#e8e8f0" opacity="0.5" />
-
-          {/* Iris with radial gradient */}
-          <ellipse cx="96" cy="150" rx="8" ry="10.5" fill={`url(#${uid}-iris)`} />
-          <ellipse cx="132" cy="150" rx="8" ry="10.5" fill={`url(#${uid}-iris)`} />
-
-          {/* Iris inner ring */}
-          <ellipse cx="96" cy="150" rx="5.5" ry="7" fill="none" stroke={eyeLight} strokeWidth="0.6" opacity="0.5" />
-          <ellipse cx="132" cy="150" rx="5.5" ry="7" fill="none" stroke={eyeLight} strokeWidth="0.6" opacity="0.5" />
+          {/* Iris texture — radial lines */}
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
+            const rad = (a * Math.PI) / 180;
+            const cx1 = 132, cy1 = 154;
+            return (
+              <line key={`il${a}`}
+                x1={cx1 + Math.cos(rad) * 2} y1={cy1 + Math.sin(rad) * 2}
+                x2={cx1 + Math.cos(rad) * 5.5} y2={cy1 + Math.sin(rad) * 5.5}
+                stroke={eD} strokeWidth="0.3" opacity="0.25"
+              />
+            );
+          })}
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => {
+            const rad = (a * Math.PI) / 180;
+            const cx1 = 168, cy1 = 154;
+            return (
+              <line key={`ir${a}`}
+                x1={cx1 + Math.cos(rad) * 2} y1={cy1 + Math.sin(rad) * 2}
+                x2={cx1 + Math.cos(rad) * 5.5} y2={cy1 + Math.sin(rad) * 5.5}
+                stroke={eD} strokeWidth="0.3" opacity="0.25"
+              />
+            );
+          })}
 
           {/* Pupil */}
-          <ellipse cx="96" cy="151" rx="2.8" ry="5" fill="#060210" />
-          <ellipse cx="132" cy="151" rx="2.8" ry="5" fill="#060210" />
+          <circle cx="132" cy="154" r="2.8" fill="#050208" />
+          <circle cx="168" cy="154" r="2.8" fill="#050208" />
 
-          {/* Multiple light reflections for realism */}
-          <circle cx="99" cy="144" r="3" fill="#ffffff" opacity="0.95" />
-          <circle cx="135" cy="144" r="3" fill="#ffffff" opacity="0.95" />
-          <circle cx="93" cy="153" r="1.5" fill="#ffffff" opacity="0.6" />
-          <circle cx="129" cy="153" r="1.5" fill="#ffffff" opacity="0.6" />
-          <circle cx="98" cy="147" r="1" fill="#ffffff" opacity="0.4" />
-          <circle cx="134" cy="147" r="1" fill="#ffffff" opacity="0.4" />
+          {/* Light reflections */}
+          <circle cx="134" cy="151" r="2" fill="#fff" opacity="0.9" />
+          <circle cx="170" cy="151" r="2" fill="#fff" opacity="0.9" />
+          <circle cx="130" cy="156" r="1" fill="#fff" opacity="0.45" />
+          <circle cx="166" cy="156" r="1" fill="#fff" opacity="0.45" />
 
-          {/* Upper eyelid with lashes — thicker, more expressive */}
-          <path d="M84,139 Q90,132 96,131 Q102,132 108,139" stroke="#0a0510" strokeWidth="2.8" fill="none" strokeLinecap="round" />
-          <path d="M120,139 Q126,132 132,131 Q138,132 144,139" stroke="#0a0510" strokeWidth="2.8" fill="none" strokeLinecap="round" />
-          {/* Lash accents */}
-          <path d="M84,139 Q82,136 80,135" stroke="#0a0510" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-          <path d="M108,139 Q110,136 112,136" stroke="#0a0510" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-          <path d="M120,139 Q118,136 116,136" stroke="#0a0510" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-          <path d="M144,139 Q146,136 148,135" stroke="#0a0510" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+          {/* Upper eyelid line — natural thickness */}
+          <path d="M120,155 Q126,146 132,144 Q138,146 144,155" stroke="#1a0e18" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+          <path d="M156,155 Q162,146 168,144 Q174,146 180,155" stroke="#1a0e18" strokeWidth="1.8" fill="none" strokeLinecap="round" />
 
-          {/* Lower lash line */}
-          <path d="M86,158 Q96,162 106,158" stroke="#1a1020" strokeWidth="0.8" fill="none" opacity="0.4" />
-          <path d="M122,158 Q132,162 142,158" stroke="#1a1020" strokeWidth="0.8" fill="none" opacity="0.4" />
+          {/* Eyelid crease */}
+          <path d="M121,151 Q132,141 143,151" stroke={s2} strokeWidth="0.6" fill="none" opacity="0.2" />
+          <path d="M157,151 Q168,141 179,151" stroke={s2} strokeWidth="0.6" fill="none" opacity="0.2" />
+
+          {/* Lower lash line — subtle */}
+          <path d="M122,157 Q132,162 142,157" stroke="#2a1828" strokeWidth="0.7" fill="none" opacity="0.3" />
+          <path d="M158,157 Q168,162 178,157" stroke="#2a1828" strokeWidth="0.7" fill="none" opacity="0.3" />
+
+          {/* Lash accents (corners) */}
+          <path d="M119,155 Q117,153 116,151" stroke="#1a0e18" strokeWidth="1.2" fill="none" opacity="0.6" strokeLinecap="round" />
+          <path d="M144,155 Q146,153 147,152" stroke="#1a0e18" strokeWidth="1" fill="none" opacity="0.5" strokeLinecap="round" />
+          <path d="M156,155 Q154,153 153,152" stroke="#1a0e18" strokeWidth="1" fill="none" opacity="0.5" strokeLinecap="round" />
+          <path d="M181,155 Q183,153 184,151" stroke="#1a0e18" strokeWidth="1.2" fill="none" opacity="0.6" strokeLinecap="round" />
         </g>
 
-        {/* Eyebrows — more detailed with thickness variation */}
-        <path d="M82,130 Q90,124 100,128" stroke={hairDark} strokeWidth="3" fill="none" strokeLinecap="round" />
-        <path d="M128,128 Q138,124 146,130" stroke={hairDark} strokeWidth="3" fill="none" strokeLinecap="round" />
-        {/* Brow highlight */}
-        <path d="M84,129 Q90,125 98,128" stroke={hair} strokeWidth="1" fill="none" opacity="0.3" strokeLinecap="round" />
-        <path d="M130,128 Q138,125 144,129" stroke={hair} strokeWidth="1" fill="none" opacity="0.3" strokeLinecap="round" />
+        {/* Eyebrows — natural shape with taper */}
+        <path d="M118,139 Q125,134 133,135 Q138,136 142,139" stroke={hD} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+        <path d="M158,139 Q162,136 167,135 Q175,134 182,139" stroke={hD} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+        {/* Brow body fill */}
+        <path d="M120,139 Q126,134 134,135 Q140,137 143,140 Q134,138 126,137 Z" fill={hD} opacity="0.35" />
+        <path d="M157,140 Q160,137 166,135 Q174,134 180,139 Q174,137 166,137 Z" fill={hD} opacity="0.35" />
 
-        {/* Nose — more defined */}
-        <path d="M114,160 Q111,168 112,172 Q114,175 116,172 Q117,168 114,160" stroke={skinDark} strokeWidth="1.2" fill="none" opacity="0.5" strokeLinecap="round" />
-        {/* Nose highlight */}
-        <ellipse cx="114" cy="164" rx="2" ry="3" fill={skinLight} opacity="0.25" />
+        {/* NOSE — realistic bridge and tip */}
+        <path d="M150,138 Q148,158 146,175 Q144,180 147,183 Q150,185 153,183 Q156,180 154,175 Q152,158 150,138" stroke={s2} strokeWidth="0.9" fill="none" opacity="0.35" strokeLinecap="round" />
+        {/* Nose bridge highlight */}
+        <path d="M150,140 Q150,155 150,170" stroke={sHL} strokeWidth="1.5" fill="none" opacity="0.2" />
+        {/* Nostrils */}
+        <ellipse cx="146" cy="182" rx="2.5" ry="1.5" fill={s2} opacity="0.2" />
+        <ellipse cx="154" cy="182" rx="2.5" ry="1.5" fill={s2} opacity="0.2" />
+        {/* Nose tip highlight */}
+        <ellipse cx="150" cy="179" rx="3" ry="2.5" fill={sHL} opacity="0.15" />
 
-        {/* Mouth — more expressive with lip shape */}
-        <path d="M104,180 Q109,176 114,175 Q119,176 124,180" stroke="#8a3848" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        <path d="M104,180 Q114,186 124,180" stroke="#7a3040" strokeWidth="1.8" fill="none" strokeLinecap="round" />
-        {/* Lip color fill */}
-        <path d="M104,180 Q114,186 124,180 Q119,176 114,175 Q109,176 104,180 Z" fill="#b85568" opacity="0.35" />
-        {/* Lower lip highlight */}
-        <ellipse cx="114" cy="182" rx="5" ry="2" fill={skinLight} opacity="0.2" />
+        {/* MOUTH — realistic lips */}
+        <g>
+          {/* Upper lip — cupid's bow */}
+          <path d="M138,196 Q143,192 147,193 Q150,191 153,193 Q157,192 162,196" stroke="#7a3040" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+          {/* Lower lip */}
+          <path d="M138,196 Q150,205 162,196" stroke="#7a3040" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+          {/* Lip fill */}
+          <path d="M138,196 Q143,192 147,193 Q150,191 153,193 Q157,192 162,196 Q150,205 138,196 Z" fill={`url(#${uid}lip)`} opacity="0.45" />
+          {/* Lower lip highlight */}
+          <ellipse cx="150" cy="200" rx="6" ry="2.5" fill={sHL} opacity="0.15" />
+          {/* Lip line (center) */}
+          <path d="M140,196 Q150,198 160,196" stroke="#6a2838" strokeWidth="0.5" fill="none" opacity="0.3" />
+        </g>
 
-        {/* Blush — softer and larger */}
-        <ellipse cx="84" cy="166" rx="10" ry="5" fill="#f0a0b0" opacity="0.35" filter={`url(#${uid}-blush)`} />
-        <ellipse cx="144" cy="166" rx="10" ry="5" fill="#f0a0b0" opacity="0.35" filter={`url(#${uid}-blush)`} />
+        {/* Chin dimple suggestion */}
+        <ellipse cx="150" cy="216" rx="2" ry="1.5" fill={s2} opacity="0.1" />
 
-        {/* Hair front / bangs */}
-        <HairFront style={character.hairStyle} color={hair} dark={hairDark} light={hairLight} gid={uid} />
+        {/* Blush — very subtle and diffuse */}
+        <ellipse cx="120" cy="175" rx="12" ry="7" fill="#e8909a" opacity="0.18" filter={`url(#${uid}bl)`} />
+        <ellipse cx="180" cy="175" rx="12" ry="7" fill="#e8909a" opacity="0.18" filter={`url(#${uid}bl)`} />
+
+        {/* Hair front */}
+        <HairFront style={character.hairStyle} color={hair} dark={hD} light={hL} uid={uid} />
       </g>
     </svg>
   );
 }
 
-/* ─── Outfit components ─── */
-function Outfit({ style, color, dark, light, mid, gid }: { style: OutfitStyle; color: string; dark: string; light: string; mid: string; gid: string }) {
+/* ═══ Legs ═══ */
+function Legs({ skin, s1, sL, outfit, oD, isSkirt, outfitStyle }: { skin: string; s1: string; sL: string; outfit: string; oD: string; isSkirt: boolean; outfitStyle: OutfitStyle }) {
+  const legSkinY = isSkirt ? 530 : 580;
+  const legSkinH = isSkirt ? 100 : 50;
+  const shoeY = isSkirt ? 640 : 640;
+  return (
+    <g>
+      {/* Pants legs (if not skirt) */}
+      {!isSkirt && (
+        <>
+          <path d="M120,490 Q118,520 116,575 Q116,582 122,584 L136,584 Q140,582 139,575 Q138,520 136,490 Z" fill={oD} />
+          <path d="M164,490 Q166,520 168,575 Q168,582 162,584 L148,584 Q144,582 145,575 Q146,520 148,490 Z" fill={oD} />
+          {/* Pant crease */}
+          <path d="M128,495 Q128,540 128,578" stroke={outfit} strokeWidth="0.8" fill="none" opacity="0.2" />
+          <path d="M156,495 Q156,540 156,578" stroke={outfit} strokeWidth="0.8" fill="none" opacity="0.2" />
+        </>
+      )}
+      {/* Skin (calves or lower legs) */}
+      {isSkirt && (
+        <>
+          <path d={`M124,${legSkinY} Q122,${legSkinY+50} 120,635 Q120,642 126,644 L138,644 Q142,642 141,635 Q140,${legSkinY+50} 138,${legSkinY} Z`}
+            fill={skin} />
+          <path d={`M162,${legSkinY} Q164,${legSkinY+50} 166,635 Q166,642 160,644 L148,644 Q144,642 145,635 Q146,${legSkinY+50} 148,${legSkinY} Z`}
+            fill={skin} />
+          {/* Knee highlight */}
+          <ellipse cx="131" cy={legSkinY + 35} rx="5" ry="8" fill={sL} opacity="0.12" />
+          <ellipse cx="155" cy={legSkinY + 35} rx="5" ry="8" fill={sL} opacity="0.12" />
+          {/* Inner shadow */}
+          <path d={`M136,${legSkinY + 5} Q137,${legSkinY + 40} 138,${legSkinY + 80}`} stroke={s1} strokeWidth="1" fill="none" opacity="0.2" />
+          <path d={`M150,${legSkinY + 5} Q149,${legSkinY + 40} 148,${legSkinY + 80}`} stroke={s1} strokeWidth="1" fill="none" opacity="0.2" />
+        </>
+      )}
+      {!isSkirt && (
+        <>
+          <path d="M120,580 Q119,608 118,632 Q118,638 124,640 L136,640 Q140,638 139,632 Q138,608 137,580 Z" fill={skin} />
+          <path d="M164,580 Q165,610 164,632 Q164,638 158,640 L148,640 Q144,638 145,632 Q146,610 147,580 Z" fill={skin} />
+        </>
+      )}
+      {/* Shoes */}
+      <ellipse cx="132" cy={shoeY} rx="18" ry="8" fill="#151018" />
+      <ellipse cx="132" cy={shoeY - 2} rx="13" ry="5" fill="#252030" opacity="0.4" />
+      <ellipse cx="156" cy={shoeY} rx="18" ry="8" fill="#151018" />
+      <ellipse cx="156" cy={shoeY - 2} rx="13" ry="5" fill="#252030" opacity="0.4" />
+    </g>
+  );
+}
+
+/* ═══ Arms ═══ */
+function Arms({ skin, s1, sL, s2, outfit, oD, uid }: { skin: string; s1: string; sL: string; s2: string; outfit: string; oD: string; uid: string }) {
+  return (
+    <g>
+      {/* Left arm — natural curve */}
+      <path d="M90,278 Q82,305 76,350 Q70,395 78,440 Q82,450 88,442 Q92,410 94,370 Q96,330 100,295 Z" fill={outfit} />
+      <path d="M88,285 Q82,315 78,350" stroke={oD} strokeWidth="1.5" fill="none" opacity="0.3" />
+      {/* Left forearm skin */}
+      <path d="M78,415 Q74,430 74,445 Q74,450 78,452 L88,452 Q92,450 92,445 Q92,430 88,415 Z" fill={skin} />
+      {/* Left hand */}
+      <g>
+        <path d="M76,450 Q72,458 70,468 Q68,478 74,480 Q78,478 80,472 Q82,466 84,460 Q86,454 82,450 Z" fill={skin} />
+        {/* Finger lines */}
+        <path d="M72,468 Q70,474 72,478" stroke={s1} strokeWidth="0.6" fill="none" opacity="0.3" />
+        <path d="M76,466 Q74,474 76,480" stroke={s1} strokeWidth="0.5" fill="none" opacity="0.2" />
+        {/* Thumb */}
+        <path d="M82,454 Q86,458 86,464 Q84,466 82,462" stroke={s1} strokeWidth="0.5" fill={skin} opacity="0.8" />
+        {/* Knuckle highlights */}
+        <ellipse cx="78" cy="454" rx="4" ry="2.5" fill={sL} opacity="0.12" />
+      </g>
+
+      {/* Right arm */}
+      <path d="M210,278 Q218,305 224,350 Q230,395 222,440 Q218,450 212,442 Q208,410 206,370 Q204,330 200,295 Z" fill={outfit} />
+      <path d="M212,285 Q218,315 222,350" stroke={oD} strokeWidth="1.5" fill="none" opacity="0.3" />
+      {/* Right forearm skin */}
+      <path d="M222,415 Q226,430 226,445 Q226,450 222,452 L212,452 Q208,450 208,445 Q208,430 212,415 Z" fill={skin} />
+      {/* Right hand */}
+      <g>
+        <path d="M224,450 Q228,458 230,468 Q232,478 226,480 Q222,478 220,472 Q218,466 216,460 Q214,454 218,450 Z" fill={skin} />
+        <path d="M228,468 Q230,474 228,478" stroke={s1} strokeWidth="0.6" fill="none" opacity="0.3" />
+        <path d="M224,466 Q226,474 224,480" stroke={s1} strokeWidth="0.5" fill="none" opacity="0.2" />
+        <path d="M218,454 Q214,458 214,464 Q216,466 218,462" stroke={s1} strokeWidth="0.5" fill={skin} opacity="0.8" />
+        <ellipse cx="222" cy="454" rx="4" ry="2.5" fill={sL} opacity="0.12" />
+      </g>
+    </g>
+  );
+}
+
+/* ═══ Outfit / Torso ═══ */
+function OutfitBody({ style, color, dark, light, mid, uid, skin, s1 }: { style: OutfitStyle; color: string; dark: string; light: string; mid: string; uid: string; skin: string; s1: string }) {
+  // Torso base shape — natural waist and shoulders
+  const torsoTop = "M100,268 Q96,272 90,280";
+  const torsoBottom = "Q150,500 210,280 Q204,272 200,268";
+
   switch (style) {
     case "dress":
       return (
         <g>
-          {/* Bodice with curve */}
-          <path d="M78,225 Q74,228 70,235 L68,280 Q90,290 114,290 Q138,290 160,280 L158,235 Q154,228 150,225 Q140,220 114,218 Q88,220 78,225 Z" fill={`url(#${gid}-outfit)`} />
-          {/* Bust subtle shading */}
-          <path d="M85,240 Q98,250 110,240" stroke={dark} strokeWidth="1" fill="none" opacity="0.25" />
-          <path d="M118,240 Q130,250 143,240" stroke={dark} strokeWidth="1" fill="none" opacity="0.25" />
-          {/* Collar detail */}
-          <path d="M90,222 Q114,215 138,222 L136,232 Q114,226 92,232 Z" fill={light} opacity="0.7" />
-          {/* Ribbon/bow at collar */}
-          <path d="M108,228 Q114,222 120,228 Q114,226 108,228 Z" fill={dark} opacity="0.5" />
-          <circle cx="114" cy="226" r="2" fill={dark} opacity="0.6" />
-          {/* Skirt — flowing A-line with folds */}
-          <path d="M68,280 Q60,330 48,430 Q80,445 114,445 Q148,445 180,430 Q168,330 160,280 Z" fill={color} />
-          {/* Fold lines */}
-          <path d="M80,290 Q76,340 65,425" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.25" />
-          <path d="M100,288 Q96,340 90,430" stroke={dark} strokeWidth="1.2" fill="none" opacity="0.2" />
-          <path d="M128,288 Q132,340 138,430" stroke={dark} strokeWidth="1.2" fill="none" opacity="0.2" />
-          <path d="M148,290 Q152,340 163,425" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.25" />
-          {/* Skirt hem highlight */}
-          <path d="M50,428 Q80,445 114,445 Q148,445 178,428" stroke={light} strokeWidth="1.5" fill="none" opacity="0.3" />
+          {/* Bodice — fitted with darts */}
+          <path d="M100,268 Q94,275 90,285 L86,340 Q110,350 150,350 Q190,350 214,340 L210,285 Q206,275 200,268 Q185,258 150,254 Q115,258 100,268 Z" fill={`url(#${uid}o)`} />
+          {/* Bust shaping */}
+          <path d="M112,295 Q130,310 148,295" stroke={dark} strokeWidth="0.8" fill="none" opacity="0.18" />
+          <path d="M152,295 Q170,310 188,295" stroke={dark} strokeWidth="0.8" fill="none" opacity="0.18" />
+          {/* Collar */}
+          <path d="M115,260 Q150,250 185,260 L182,272 Q150,264 118,272 Z" fill={light} opacity="0.6" />
+          {/* Bow */}
+          <path d="M144,268 Q150,262 156,268 Q150,265 144,268 Z" fill={dark} opacity="0.4" />
+          <circle cx="150" cy="265" r="2.5" fill={dark} opacity="0.5" />
+          {/* Skirt — A-line with volume */}
+          <path d="M86,340 Q74,400 58,530 Q100,548 150,548 Q200,548 242,530 Q226,400 214,340 Z" fill={color} />
+          {/* Fabric folds */}
+          <path d="M100,350 Q94,420 82,530" stroke={dark} strokeWidth="1.8" fill="none" opacity="0.18" />
+          <path d="M130,348 Q124,420 115,535" stroke={dark} strokeWidth="1.2" fill="none" opacity="0.12" />
+          <path d="M170,348 Q176,420 185,535" stroke={dark} strokeWidth="1.2" fill="none" opacity="0.12" />
+          <path d="M200,350 Q206,420 218,530" stroke={dark} strokeWidth="1.8" fill="none" opacity="0.18" />
+          {/* Hem highlight */}
+          <path d="M62,528 Q100,548 150,548 Q200,548 238,528" stroke={light} strokeWidth="1.5" fill="none" opacity="0.2" />
         </g>
       );
     case "uniform":
       return (
         <g>
-          {/* White blouse */}
-          <path d="M78,225 Q74,228 70,235 L66,340 Q90,348 114,348 Q138,348 162,340 L158,235 Q154,228 150,225 Q140,220 114,218 Q88,220 78,225 Z" fill="#f0f0f6" />
+          {/* White shirt */}
+          <path d="M100,268 Q94,275 90,285 L84,410 Q115,420 150,420 Q185,420 216,410 L210,285 Q206,275 200,268 Q185,258 150,254 Q115,258 100,268 Z" fill="#eeeef4" />
           {/* Collar shadow */}
-          <path d="M85,230 Q114,222 143,230" stroke="#d8d8e0" strokeWidth="1.5" fill="none" opacity="0.5" />
+          <path d="M110,275 Q150,265 190,275" stroke="#d0d0dc" strokeWidth="1.5" fill="none" opacity="0.4" />
           {/* Sailor collar */}
-          <path d="M78,225 L70,250 Q114,235 158,250 L150,225 Q114,215 78,225 Z" fill={color} />
-          <path d="M72,248 Q114,233 156,248" stroke={light} strokeWidth="1.5" fill="none" opacity="0.5" />
-          {/* Neckerchief/tie */}
-          <polygon points="108,228 120,228 118,260 114,275 110,260" fill={color} />
-          <polygon points="110,260 114,275 118,260 116,255 112,255" fill={dark} opacity="0.4" />
+          <path d="M100,268 L88,300 Q150,282 212,300 L200,268 Q150,252 100,268 Z" fill={color} />
+          <path d="M90,298 Q150,280 210,298" stroke={light} strokeWidth="1.5" fill="none" opacity="0.4" />
+          {/* Tie */}
+          <polygon points="142,272 158,272 156,310 150,328 144,310" fill={color} />
+          <polygon points="144,310 150,328 156,310 154,305 146,305" fill={dark} opacity="0.4" />
           {/* Pleated skirt */}
-          <path d="M66,340 Q58,375 50,425 Q82,440 114,440 Q146,440 178,425 Q170,375 162,340 Z" fill={color} />
-          {/* Pleat lines */}
-          {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => (
-            <line key={i} x1={58 + i * 16} y1={345} x2={52 + i * 15} y2={430} stroke={dark} strokeWidth="1.2" opacity="0.4" />
+          <path d="M84,410 Q74,450 62,530 Q100,548 150,548 Q200,548 238,530 Q226,450 216,410 Z" fill={color} />
+          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((i) => (
+            <line key={i} x1={70 + i * 18} y1={415} x2={64 + i * 17} y2={535} stroke={dark} strokeWidth="1.2" opacity="0.3" />
           ))}
           {/* Waistband */}
-          <rect x="66" y="336" width="96" height="8" rx="2" fill={dark} opacity="0.6" />
+          <rect x="84" y="406" width="132" height="10" rx="3" fill={dark} opacity="0.5" />
         </g>
       );
     case "hoodie":
       return (
         <g>
-          {/* Main body */}
-          <path d="M72,225 Q66,230 62,240 L56,400 Q84,410 114,410 Q144,410 172,400 L166,240 Q162,230 156,225 Q142,218 114,216 Q86,218 72,225 Z" fill={`url(#${gid}-outfit)`} />
-          {/* Hood behind neck */}
-          <path d="M80,218 Q114,200 148,218 L152,240 Q114,225 76,240 Z" fill={dark} />
-          {/* Hood edge */}
-          <path d="M80,218 Q114,200 148,218" stroke={mid} strokeWidth="2" fill="none" opacity="0.5" />
-          {/* Center zipper/seam */}
-          <line x1="114" y1="225" x2="114" y2="395" stroke={dark} strokeWidth="1.5" opacity="0.3" />
+          <path d="M98,268 Q90,275 84,288 L74,495 Q110,508 150,508 Q190,508 226,495 L216,288 Q210,275 202,268 Q180,255 150,252 Q120,255 98,268 Z" fill={`url(#${uid}o)`} />
+          {/* Hood */}
+          <path d="M106,258 Q150,238 194,258 L198,280 Q150,265 102,280 Z" fill={dark} />
+          <path d="M106,258 Q150,238 194,258" stroke={mid} strokeWidth="2" fill="none" opacity="0.4" />
+          {/* Center seam */}
+          <line x1="150" y1="270" x2="150" y2="490" stroke={dark} strokeWidth="1.5" opacity="0.2" />
           {/* Kangaroo pocket */}
-          <path d="M82,310 Q84,300 114,298 Q144,300 146,310 L148,350 Q114,355 80,350 Z" fill={dark} opacity="0.4" />
-          <path d="M82,310 Q84,300 114,298 Q144,300 146,310" stroke={dark} strokeWidth="1.2" fill="none" opacity="0.5" />
+          <path d="M108,380 Q112,368 150,365 Q188,368 192,380 L195,425 Q150,432 105,425 Z" fill={dark} opacity="0.35" />
+          <path d="M108,380 Q112,368 150,365 Q188,368 192,380" stroke={dark} strokeWidth="1" fill="none" opacity="0.4" />
           {/* Drawstrings */}
-          <path d="M104,225 Q102,240 100,260" stroke={light} strokeWidth="1.8" fill="none" opacity="0.6" />
-          <path d="M124,225 Q126,240 128,260" stroke={light} strokeWidth="1.8" fill="none" opacity="0.6" />
-          {/* String tips */}
-          <rect x="98" y="258" width="4" height="6" rx="1" fill={light} opacity="0.5" />
-          <rect x="126" y="258" width="4" height="6" rx="1" fill={light} opacity="0.5" />
+          <path d="M138,270 Q136,290 134,315" stroke={light} strokeWidth="1.8" fill="none" opacity="0.5" />
+          <path d="M162,270 Q164,290 166,315" stroke={light} strokeWidth="1.8" fill="none" opacity="0.5" />
+          <rect x="132" y="313" width="4" height="7" rx="1" fill={light} opacity="0.4" />
+          <rect x="164" y="313" width="4" height="7" rx="1" fill={light} opacity="0.4" />
         </g>
       );
     case "yukata":
       return (
         <g>
-          {/* Main robe */}
-          <path d="M74,225 Q68,230 64,240 L56,440 Q84,450 114,450 Q144,450 172,440 L164,240 Q160,230 154,225 Q142,218 114,216 Q86,218 74,225 Z" fill={color} />
-          {/* Cross overlap (right over left) */}
-          <path d="M114,225 L154,225 Q158,230 160,240 L150,310 L114,295 Z" fill={dark} opacity="0.4" />
-          {/* Collar V-neckline */}
-          <path d="M100,222 L114,260 L128,222" stroke={light} strokeWidth="2.5" fill="none" opacity="0.6" />
-          {/* Obi (sash belt) */}
-          <path d="M60,315 Q90,322 114,322 Q138,322 168,315 L170,345 Q138,352 114,352 Q90,352 58,345 Z" fill={light} />
-          {/* Obi knot/bow at back (visible as bump) */}
-          <ellipse cx="155" cy="332" rx="8" ry="12" fill={shade(light, -10)} opacity="0.6" />
-          {/* Obi shadow lines */}
-          <path d="M62,318 Q114,325 166,318" stroke={dark} strokeWidth="1" fill="none" opacity="0.3" />
-          <path d="M60,342 Q114,350 168,342" stroke={dark} strokeWidth="1" fill="none" opacity="0.3" />
-          {/* Fabric folds */}
-          <path d="M80,350 Q76,390 68,440" stroke={dark} strokeWidth="1.2" fill="none" opacity="0.2" />
-          <path d="M148,350 Q152,390 160,440" stroke={dark} strokeWidth="1.2" fill="none" opacity="0.2" />
+          <path d="M100,268 Q92,275 86,288 L74,545 Q110,558 150,558 Q190,558 226,545 L214,288 Q208,275 200,268 Q180,255 150,252 Q120,255 100,268 Z" fill={color} />
+          {/* Cross overlap */}
+          <path d="M150,268 L200,268 Q206,275 210,288 L196,380 L150,365 Z" fill={dark} opacity="0.35" />
+          {/* Collar V */}
+          <path d="M132,262 L150,310 L168,262" stroke={light} strokeWidth="2.5" fill="none" opacity="0.5" />
+          {/* Obi */}
+          <path d="M78,385 Q120,395 150,395 Q180,395 222,385 L224,420 Q180,430 150,430 Q120,430 76,420 Z" fill={light} />
+          <ellipse cx="200" cy="405" rx="10" ry="14" fill={shade(light, -12)} opacity="0.5" />
+          <path d="M80,388 Q150,398 220,388" stroke={dark} strokeWidth="0.8" fill="none" opacity="0.25" />
+          <path d="M78,418 Q150,428 222,418" stroke={dark} strokeWidth="0.8" fill="none" opacity="0.25" />
+          {/* Folds */}
+          <path d="M104,430 Q98,480 88,540" stroke={dark} strokeWidth="1.2" fill="none" opacity="0.15" />
+          <path d="M196,430 Q202,480 212,540" stroke={dark} strokeWidth="1.2" fill="none" opacity="0.15" />
         </g>
       );
   }
 }
 
-/* ─── Hair back layer ─── */
-function HairBack({ style, color, dark, light, gid }: { style: HairStyle; color: string; dark: string; light: string; gid: string }) {
+/* ═══ Hair Back ═══ */
+function HairBack({ style, color, dark, light, uid }: { style: HairStyle; color: string; dark: string; light: string; uid: string }) {
   switch (style) {
     case "long":
       return (
         <g>
-          <path d="M68,152 Q56,100 114,82 Q172,100 160,152 L175,350 Q114,365 53,350 Z" fill={`url(#${gid}-hair)`} />
-          {/* Hair strands */}
-          <path d="M70,150 Q65,220 58,330" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.3" />
-          <path d="M85,120 Q78,200 68,310" stroke={dark} strokeWidth="1" fill="none" opacity="0.2" />
-          <path d="M158,150 Q163,220 170,330" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.3" />
-          {/* Sheen highlight */}
-          <path d="M95,95 Q105,90 120,95" stroke={light} strokeWidth="2" fill="none" opacity="0.4" />
+          <path d="M90,160 Q76,110 150,88 Q224,110 210,160 L228,420 Q150,438 72,420 Z" fill={`url(#${uid}h)`} />
+          <path d="M92,165 Q86,260 78,390" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.2" />
+          <path d="M110,130 Q100,240 90,370" stroke={dark} strokeWidth="1" fill="none" opacity="0.15" />
+          <path d="M208,165 Q214,260 222,390" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.2" />
+          <path d="M130,100 Q145,95 165,100" stroke={light} strokeWidth="2.5" fill="none" opacity="0.3" />
         </g>
       );
     case "short":
       return (
         <g>
-          <path d="M72,148 Q64,96 114,80 Q164,96 156,148 L160,195 Q114,205 68,195 Z" fill={`url(#${gid}-hair)`} />
-          <path d="M95,90 Q110,86 125,90" stroke={light} strokeWidth="2" fill="none" opacity="0.4" />
+          <path d="M95,158 Q84,108 150,88 Q216,108 205,158 L210,225 Q150,240 90,225 Z" fill={`url(#${uid}h)`} />
+          <path d="M130,98 Q148,93 165,98" stroke={light} strokeWidth="2.5" fill="none" opacity="0.3" />
         </g>
       );
     case "twin":
       return (
         <g>
-          <path d="M70,148 Q62,96 114,80 Q166,96 158,148 L160,195 Q114,205 68,195 Z" fill={`url(#${gid}-hair)`} />
-          {/* Left pigtail */}
-          <path d="M56,200 Q44,280 60,370 Q68,370 74,360 Q80,290 72,210 Z" fill={color} />
-          <path d="M60,220 Q52,280 62,350" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.3" />
-          {/* Right pigtail */}
-          <path d="M172,200 Q184,280 168,370 Q160,370 154,360 Q148,290 156,210 Z" fill={color} />
-          <path d="M168,220 Q176,280 166,350" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.3" />
-          {/* Hair ties */}
-          <ellipse cx="64" cy="202" rx="6" ry="4" fill={dark} opacity="0.7" />
-          <ellipse cx="164" cy="202" rx="6" ry="4" fill={dark} opacity="0.7" />
-          {/* Sheen */}
-          <path d="M95,90 Q110,86 125,90" stroke={light} strokeWidth="2" fill="none" opacity="0.4" />
+          <path d="M92,158 Q82,108 150,88 Q218,108 208,158 L210,225 Q150,240 90,225 Z" fill={`url(#${uid}h)`} />
+          <path d="M74,240 Q58,340 78,440 Q88,440 96,428 Q104,350 94,250 Z" fill={color} />
+          <path d="M78,260 Q66,340 80,420" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.2" />
+          <path d="M226,240 Q242,340 222,440 Q212,440 204,428 Q196,350 206,250 Z" fill={color} />
+          <path d="M222,260 Q234,340 220,420" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.2" />
+          <ellipse cx="84" cy="242" rx="7" ry="5" fill={dark} opacity="0.6" />
+          <ellipse cx="216" cy="242" rx="7" ry="5" fill={dark} opacity="0.6" />
+          <path d="M130,98 Q148,93 165,98" stroke={light} strokeWidth="2.5" fill="none" opacity="0.3" />
         </g>
       );
     case "bob":
       return (
         <g>
-          <path d="M70,152 Q62,96 114,80 Q166,96 158,152 L168,230 Q114,244 60,230 Z" fill={`url(#${gid}-hair)`} />
-          <path d="M95,90 Q110,86 125,90" stroke={light} strokeWidth="2" fill="none" opacity="0.4" />
-          {/* Bob curve at ends */}
-          <path d="M64,225 Q80,238 114,240 Q148,238 164,225" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.3" />
+          <path d="M92,160 Q82,108 150,88 Q218,108 208,160 L218,270 Q150,288 82,270 Z" fill={`url(#${uid}h)`} />
+          <path d="M86,265 Q110,282 150,285 Q190,282 214,265" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.25" />
+          <path d="M130,98 Q148,93 165,98" stroke={light} strokeWidth="2.5" fill="none" opacity="0.3" />
         </g>
       );
     case "ponytail":
       return (
         <g>
-          <path d="M72,148 Q64,96 114,80 Q164,96 156,148 L160,195 Q114,205 68,195 Z" fill={`url(#${gid}-hair)`} />
-          {/* Ponytail flowing back */}
-          <path d="M155,155 Q190,220 178,340 Q172,350 165,340 Q160,250 145,180 Z" fill={color} />
-          <path d="M158,170 Q182,240 174,330" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.3" />
-          {/* Hair tie */}
-          <ellipse cx="152" cy="160" rx="5" ry="4" fill={dark} opacity="0.7" />
-          <path d="M95,90 Q110,86 125,90" stroke={light} strokeWidth="2" fill="none" opacity="0.4" />
+          <path d="M95,158 Q84,108 150,88 Q216,108 205,158 L210,225 Q150,240 90,225 Z" fill={`url(#${uid}h)`} />
+          <path d="M205,170 Q245,260 230,400 Q222,412 214,400 Q210,300 190,210 Z" fill={color} />
+          <path d="M208,190 Q238,280 226,390" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.2" />
+          <ellipse cx="200" cy="178" rx="7" ry="5" fill={dark} opacity="0.6" />
+          <path d="M130,98 Q148,93 165,98" stroke={light} strokeWidth="2.5" fill="none" opacity="0.3" />
         </g>
       );
   }
 }
 
-/* ─── Hair front / bangs ─── */
-function HairFront({ style, color, dark, light, gid }: { style: HairStyle; color: string; dark: string; light: string; gid: string }) {
+/* ═══ Hair Front / Bangs ═══ */
+function HairFront({ style, color, dark, light, uid }: { style: HairStyle; color: string; dark: string; light: string; uid: string }) {
   const bangs = (
     <g>
-      {/* Main bangs shape */}
-      <path d="M72,132 Q78,92 114,84 Q150,92 156,132 Q144,120 114,126 Q84,120 72,132 Z" fill={color} />
-      {/* Bangs depth/shadow strands */}
-      <path d="M80,130 Q90,142 106,132 Q100,148 88,146 Z" fill={dark} opacity="0.4" />
-      <path d="M148,130 Q138,142 122,132 Q128,148 140,146 Z" fill={dark} opacity="0.4" />
-      {/* Highlight strand */}
-      <path d="M100,100 Q108,95 116,100" stroke={light} strokeWidth="1.5" fill="none" opacity="0.35" />
-      <path d="M88,108 Q96,104 108,108" stroke={light} strokeWidth="1" fill="none" opacity="0.25" />
+      <path d="M95,148 Q102,102 150,92 Q198,102 205,148 Q190,134 150,140 Q110,134 95,148 Z" fill={color} />
+      {/* Strand shadows */}
+      <path d="M105,145 Q118,158 140,148 Q132,168 115,162 Z" fill={dark} opacity="0.3" />
+      <path d="M195,145 Q182,158 160,148 Q168,168 185,162 Z" fill={dark} opacity="0.3" />
+      {/* Highlights */}
+      <path d="M132,110 Q142,105 155,110" stroke={light} strokeWidth="1.8" fill="none" opacity="0.28" />
+      <path d="M118,120 Q130,115 145,120" stroke={light} strokeWidth="1" fill="none" opacity="0.18" />
     </g>
   );
 
-  if (style === "twin") {
+  if (style === "twin" || style === "long") {
     return (
       <g>
         {bangs}
-        {/* Side strands framing face */}
-        <path d="M68,132 Q58,175 66,230 Q76,195 78,142 Z" fill={color} />
-        <path d="M160,132 Q170,175 162,230 Q152,195 150,142 Z" fill={color} />
-        {/* Strand shadows */}
-        <path d="M72,140 Q64,180 68,220" stroke={dark} strokeWidth="1" fill="none" opacity="0.3" />
-        <path d="M156,140 Q164,180 160,220" stroke={dark} strokeWidth="1" fill="none" opacity="0.3" />
-      </g>
-    );
-  }
-  if (style === "long") {
-    return (
-      <g>
-        {bangs}
-        {/* Side hair framing */}
-        <path d="M70,132 Q62,170 60,210 Q72,200 76,145 Z" fill={color} />
-        <path d="M158,132 Q166,170 168,210 Q156,200 152,145 Z" fill={color} />
+        <path d="M92,148 Q80,195 86,265 Q100,235 104,158 Z" fill={color} />
+        <path d="M208,148 Q220,195 214,265 Q200,235 196,158 Z" fill={color} />
+        <path d="M96,155 Q86,200 90,255" stroke={dark} strokeWidth="0.8" fill="none" opacity="0.2" />
+        <path d="M204,155 Q214,200 210,255" stroke={dark} strokeWidth="0.8" fill="none" opacity="0.2" />
       </g>
     );
   }
