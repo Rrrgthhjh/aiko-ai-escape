@@ -8,6 +8,7 @@ const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 export async function streamChat({
   history,
   character,
+  chatSettings,
   onDelta,
   onDone,
   onError,
@@ -19,7 +20,7 @@ export async function streamChat({
   onDone: () => void;
   onError: (msg: string) => void;
 }) {
-  const settings = arguments[0].chatSettings ?? DEFAULT_CHAT_SETTINGS;
+  const settings = chatSettings ?? DEFAULT_CHAT_SETTINGS;
   try {
     const resp = await fetch(CHAT_URL, {
       method: "POST",
