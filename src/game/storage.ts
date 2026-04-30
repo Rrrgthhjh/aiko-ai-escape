@@ -1,5 +1,5 @@
 import type { SaveState } from "./types";
-import { DEFAULT_CHARACTER } from "./types";
+import { DEFAULT_CHARACTER, DEFAULT_CHAT_SETTINGS } from "./types";
 
 const KEY = "kago_save_v1";
 
@@ -21,6 +21,41 @@ export function loadSave(): SaveState | null {
     }
     return parsed;
   } catch { return null; }
+}
+
+const CACHE_KEY = "kago_chat_cache";
+const CACHE_MAX = 32;
+
+type CacheEntry = { key: string; response: string; ts: number };
+
+export function loadChatCache(): CacheEntry[] {
+  try {
+    return JSON.parse(localStorage.getItem(CACHE_KEY) || "[]");
+  } catch { return []; }
+}
+
+export function writeChatCache(entries: CacheEntry[]) {
+  localStorage.setItem(CACHE_KEY, JSON.stringify(entries.slice(-CACHE_MAX)));
+}
+
+export function normalizeCacheKey(text: string): string {
+  return text.toLowerCase().replace(/[^a-záàâãéèêíìóòôõúùûç0-9\s]/gi, "").replace(/\s+/g, " ").trim();
+}
+
+export function findCachedResponse(userMsg: string, cache: CacheEntry[]): string | null {
+  const key = normalizeCacheKey(userMsg);
+  if (key.length < 3) return null;
+  const match = cache.find((e) => e.key === key);
+  return match?.response ?? null;
+}
+
+export function addCacheEntry(userMsg: string, response: string) {
+  const cache = loadChatCache();
+  const key = normalizeCacheKey(userMsg);
+  if (key.length < 3) return;
+  if (cache.some((e) => e.key === key)) return;
+  cache.push({ key, response, ts: Date.now() });
+  writeChatCache(cache);
 }
 
 export function writeSave(s: SaveState) {
