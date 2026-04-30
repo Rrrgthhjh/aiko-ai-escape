@@ -152,6 +152,7 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
           placeholder={`Fale com ${character.name}...`}
           rows={1}
           maxLength={600}
+          maxLength={settings.maxMessageLength}
           className="flex-1 resize-none bg-input/80 border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/60 max-h-32"
         />
         <Button onClick={send} disabled={loading || !input.trim()} size="icon" className="bg-aurora text-primary-foreground shadow-glow shrink-0">
