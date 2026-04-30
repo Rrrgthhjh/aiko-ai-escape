@@ -1,4 +1,6 @@
 import type { Character, ChatMessage } from "./types";
+import type { ChatSettings } from "./types";
+import { DEFAULT_CHAT_SETTINGS } from "./types";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
@@ -12,10 +14,12 @@ export async function streamChat({
 }: {
   history: ChatMessage[];
   character: Character;
+  chatSettings?: ChatSettings;
   onDelta: (chunk: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
 }) {
+  const settings = chatSettings ?? DEFAULT_CHAT_SETTINGS;
   try {
     const resp = await fetch(CHAT_URL, {
       method: "POST",
@@ -23,6 +27,7 @@ export async function streamChat({
       body: JSON.stringify({
         character,
         messages: history.map((m) => ({ role: m.role, content: m.content })),
+        settings: { maxTokens: settings.maxTokens, recentLimit: settings.recentLimit },
       }),
     });
 
