@@ -7,6 +7,8 @@ import PauseMenu from "../components/PauseMenu";
 import RoomPicker from "../components/RoomPicker";
 import AvatarSVG from "../components/AvatarSVG";
 import type { SaveState, Character, ChatMessage, Mood, Room } from "../types";
+import { DEFAULT_CHAT_SETTINGS } from "../types";
+import type { ChatSettings } from "../types";
 import { writeSave } from "../storage";
 import { toast } from "sonner";
 import { analyzeGameState, MOOD_LABELS, ROOM_CLUES } from "../gameState";
@@ -21,6 +23,7 @@ export default function Game({
   const [paused, setPaused] = useState(false);
   const [discoveredClues, setDiscoveredClues] = useState<string[]>(initial.discoveredClues ?? []);
   const [hudHidden, setHudHidden] = useState(false);
+  const [chatSettings, setChatSettings] = useState<ChatSettings>(initial.chatSettings ?? DEFAULT_CHAT_SETTINGS);
   const ROOM_ORDER: Room[] = ["sala", "cozinha", "banheiro", "quarto"];
   const roomIdx = ROOM_ORDER.indexOf(room);
   const [transitioning, setTransitioning] = useState(false);
@@ -48,16 +51,16 @@ export default function Game({
   const setMessages = (updater: (m: ChatMessage[]) => ChatMessage[]) => {
     _setMessages((prev) => {
       const next = updater(prev);
-      writeSave({ character, portrait: null, messages: next, warningSeen: true, discoveredClues });
+      writeSave({ character, portrait: null, messages: next, warningSeen: true, discoveredClues, chatSettings });
       return next;
     });
   };
 
   // persiste personagem
   useEffect(() => {
-    writeSave({ character, portrait: null, messages, warningSeen: true, discoveredClues });
+    writeSave({ character, portrait: null, messages, warningSeen: true, discoveredClues, chatSettings });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [character, discoveredClues]);
+  }, [character, discoveredClues, chatSettings]);
 
   // Ambiente sonoro por cômodo
   useEffect(() => {
@@ -195,7 +198,7 @@ export default function Game({
       {/* Chat (oculta com HUD) */}
       {!hudHidden && (
         <div className="h-[44%] sm:h-[40%] min-h-[260px] z-20">
-          <ChatPanel character={character} messages={messages} setMessages={setMessages} mood={gameState.mood} persuasion={gameState.persuasion} suspicion={gameState.suspicion} />
+          <ChatPanel character={character} messages={messages} setMessages={setMessages} mood={gameState.mood} persuasion={gameState.persuasion} suspicion={gameState.suspicion} chatSettings={chatSettings} />
         </div>
       )}
 
@@ -204,9 +207,15 @@ export default function Game({
           character={character}
           messages={messages}
           onClose={() => setPaused(false)}
-          onSaveExit={() => { writeSave({ character, portrait: null, messages, warningSeen: true, discoveredClues }); onExit(); }}
+          onSaveExit={() => { writeSave({ character, portrait: null, messages, warningSeen: true, discoveredClues, chatSettings }); onExit(); }}
           onClearMemory={handleClearMemory}
           onUpdateCharacter={handleUpdateCharacter}
+          chatSettings={chatSettings}
+          onUpdateChatSettings={(s) => {
+            setChatSettings(s);
+            writeSave({ character, portrait: null, messages, warningSeen: true, discoveredClues, chatSettings: s });
+            toast.success("Configurações atualizadas!");
+          }}
         />
       )}
     </div>

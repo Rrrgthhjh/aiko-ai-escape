@@ -3,9 +3,12 @@ import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Send, AlertTriangle, Loader2 } from "lucide-react";
 import type { Character, ChatMessage, Mood } from "../types";
+import type { ChatSettings } from "../types";
+import { DEFAULT_CHAT_SETTINGS } from "../types";
 import { streamChat } from "../chat";
 import { filterUserMessage } from "../contentFilter";
 import { MOOD_LABELS } from "../gameState";
+import { findCachedResponse, loadChatCache, addCacheEntry } from "../storage";
 
 type Props = {
   character: Character;
@@ -14,9 +17,11 @@ type Props = {
   mood: Mood;
   persuasion: number;
   suspicion: number;
+  chatSettings?: ChatSettings;
 };
 
-export default function ChatPanel({ character, messages, setMessages, mood, persuasion, suspicion }: Props) {
+export default function ChatPanel({ character, messages, setMessages, mood, persuasion, suspicion, chatSettings }: Props) {
+  const settings = chatSettings ?? DEFAULT_CHAT_SETTINGS;
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [warn, setWarn] = useState<string | null>(null);
@@ -36,6 +41,7 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
       streamChat({
         history: [{ id: "seed", role: "user", content: "*acabei de acordar e olho ao redor, confuso*", ts: Date.now() }],
         character,
+        chatSettings: settings,
         onDelta: (c) => {
           acc += c;
           setMessages((m) => m.map((x) => (x.id === id ? { ...x, content: acc } : x)));
@@ -56,7 +62,8 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
     if (f.ok === false) { setWarn(f.reason); return; }
     setWarn(null);
     const cleaned = f.cleaned;
-    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: cleaned, ts: Date.now() };
+    const trimmed = cleaned.slice(0, settings.maxMessageLength);
+    const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: trimmed, ts: Date.now() };
     setMessages((m) => [...m, userMsg]);
     setInput("");
     setLoading(true);
@@ -64,20 +71,30 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
     const aiId = crypto.randomUUID();
     setMessages((m) => [...m, { id: aiId, role: "assistant", content: "", ts: Date.now() }]);
 
-    let acc = "";
-    await streamChat({
-      history: [...messages, userMsg],
-      character,
-      onDelta: (c) => {
-        acc += c;
-        setMessages((m) => m.map((x) => (x.id === aiId ? { ...x, content: acc } : x)));
-      },
-      onDone: () => setLoading(false),
-      onError: (msg) => {
-        setMessages((m) => m.map((x) => (x.id === aiId ? { ...x, content: `*ela hesita* — ${msg}` } : x)));
-        setLoading(false);
-      },
-    });
+    const cached = findCachedResponse(trimmed, loadChatCache());
+    if (cached) {
+      setMessages((m) => m.map((x) => (x.id === aiId ? { ...x, content: cached } : x)));
+      setLoading(false);
+    } else {
+      let acc = "";
+      await streamChat({
+        history: [...messages, userMsg],
+        character,
+        chatSettings: settings,
+        onDelta: (c) => {
+          acc += c;
+          setMessages((m) => m.map((x) => (x.id === aiId ? { ...x, content: acc } : x)));
+        },
+        onDone: () => {
+          setLoading(false);
+          if (acc.length > 5) addCacheEntry(trimmed, acc);
+        },
+        onError: (msg) => {
+          setMessages((m) => m.map((x) => (x.id === aiId ? { ...x, content: `*ela hesita* — ${msg}` } : x)));
+          setLoading(false);
+        },
+      });
+    }
   };
 
   return (
@@ -134,7 +151,7 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder={`Fale com ${character.name}...`}
           rows={1}
-          maxLength={600}
+          maxLength={settings.maxMessageLength}
           className="flex-1 resize-none bg-input/80 border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/60 max-h-32"
         />
         <Button onClick={send} disabled={loading || !input.trim()} size="icon" className="bg-aurora text-primary-foreground shadow-glow shrink-0">

@@ -4,14 +4,16 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Brain, Settings, Save, X, Trash2 } from "lucide-react";
-import type { Character, ChatMessage } from "../types";
+import { Brain, Settings, Save, X, Trash2, SlidersHorizontal } from "lucide-react";
+import type { Character, ChatMessage, ChatSettings } from "../types";
 import CharacterCreator from "./CharacterCreator";
+import AdvancedSettings from "./AdvancedSettings";
 
-type Tab = "menu" | "memory" | "settings";
+type Tab = "menu" | "memory" | "settings" | "advanced";
 
 export default function PauseMenu({
   character, messages, onClose, onSaveExit, onClearMemory, onUpdateCharacter,
+  chatSettings, onUpdateChatSettings,
 }: {
   character: Character;
   messages: ChatMessage[];
@@ -19,6 +21,8 @@ export default function PauseMenu({
   onSaveExit: () => void;
   onClearMemory: () => void;
   onUpdateCharacter: (c: Character) => Promise<void>;
+  chatSettings: ChatSettings;
+  onUpdateChatSettings: (s: ChatSettings) => void;
 }) {
   const [tab, setTab] = useState<Tab>("menu");
   const [pendingChar, setPendingChar] = useState<Character | null>(null);
@@ -43,6 +47,9 @@ export default function PauseMenu({
               </Button>
               <Button onClick={() => setTab("settings")} variant="outline" className="justify-start h-14 border-primary/30 hover:bg-primary/10">
                 <Settings className="w-5 h-5 mr-3 text-primary" /> Configurações — repersonalizar a IA
+              </Button>
+              <Button onClick={() => setTab("advanced")} variant="outline" className="justify-start h-14 border-primary/30 hover:bg-primary/10">
+                <SlidersHorizontal className="w-5 h-5 mr-3 text-primary" /> Avançado — tokens e economia
               </Button>
               <Button onClick={onSaveExit} className="justify-start h-14 bg-aurora text-primary-foreground shadow-glow">
                 <Save className="w-5 h-5 mr-3" /> Salvar e sair
@@ -73,6 +80,14 @@ export default function PauseMenu({
                 <Trash2 className="w-4 h-4 mr-2" /> Apagar conversa e reiniciar a IA
               </Button>
             </div>
+          )}
+
+          {tab === "advanced" && (
+            <AdvancedSettings
+              settings={chatSettings}
+              onChange={(s) => { onUpdateChatSettings(s); setTab("menu"); }}
+              onBack={() => setTab("menu")}
+            />
           )}
 
           {tab === "settings" && !pendingChar && (

@@ -3,10 +3,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// --- Otimizações de custo ---
-const RECENT_LIMIT = 8;       // últimas N mensagens enviadas integralmente
+// --- Defaults (overridable by client settings) ---
+const DEFAULT_RECENT_LIMIT = 8;
 const SUMMARY_MAX_CHARS = 240; // resumo curto das mensagens mais antigas
-const MAX_TOKENS = 120;       // 1-3 frases curtas
+const DEFAULT_MAX_TOKENS = 120;
 
 // Resume mensagens antigas em UMA linha (sem chamar a IA — barato e determinístico)
 function summarizeOlder(messages: Array<{ role: string; content: string }>): string | null {
@@ -34,9 +34,12 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, character } = await req.json();
+    const { messages, character, settings } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    const RECENT_LIMIT = Math.min(Math.max(settings?.recentLimit ?? DEFAULT_RECENT_LIMIT, 2), 16);
+    const MAX_TOKENS = Math.min(Math.max(settings?.maxTokens ?? DEFAULT_MAX_TOKENS, 30), 250);
 
     const all = Array.isArray(messages) ? messages : [];
     const recent = all.slice(-RECENT_LIMIT);
