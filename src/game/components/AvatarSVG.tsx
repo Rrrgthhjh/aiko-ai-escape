@@ -281,11 +281,7 @@ function Legs({ skin, s1, sL, outfit, oD, isSkirt, outfitStyle }: { skin: string
       )}
       {!isSkirt && (
         <>
-          <path d="M120,580 Q119,605 118,630 Q118,636 124,638 L136,638 Q140,636 139,630 Q138,605 137,580 Z" fill={skin} />
-          <path d="M147,580 Q148,605 149,630 Q149,636 143,638 L131,638" fill="none" />
-          <path d="M147,580 Q148,605 149,630 Q149,636 143,638 L131,638 Q127,636 128,630 Q129,605 130,580 Z" fill={skin} style={{display:'none'}} />
-          {/* Simplified — just show ankles */}
-          <path d="M148,580 Q149,610 148,632 Q148,638 142,640 L136,640" fill={skin} stroke="none" />
+          <path d="M120,580 Q119,608 118,632 Q118,638 124,640 L136,640 Q140,638 139,632 Q138,608 137,580 Z" fill={skin} />
           <path d="M164,580 Q165,610 164,632 Q164,638 158,640 L148,640 Q144,638 145,632 Q146,610 147,580 Z" fill={skin} />
         </>
       )}
