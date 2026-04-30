@@ -19,7 +19,7 @@ export async function streamChat({
   onDone: () => void;
   onError: (msg: string) => void;
 }) {
-  const settings = chatSettings ?? DEFAULT_CHAT_SETTINGS;
+  const settings = arguments[0].chatSettings ?? DEFAULT_CHAT_SETTINGS;
   try {
     const resp = await fetch(CHAT_URL, {
       method: "POST",
