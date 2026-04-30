@@ -24,12 +24,32 @@ export type Room = "sala" | "cozinha" | "banheiro" | "quarto";
 
 export type Mood = "calm" | "soft" | "tense" | "angry" | "hopeful";
 
+export type ChatPreset = "economic" | "normal";
+
+export type ChatSettings = {
+  preset: ChatPreset;
+  maxTokens: number;
+  maxMessageLength: number;
+  recentLimit: number;
+};
+
+export const CHAT_PRESETS: Record<ChatPreset, Omit<ChatSettings, "preset">> = {
+  economic: { maxTokens: 60, maxMessageLength: 300, recentLimit: 4 },
+  normal: { maxTokens: 120, maxMessageLength: 600, recentLimit: 8 },
+};
+
+export const DEFAULT_CHAT_SETTINGS: ChatSettings = {
+  preset: "normal",
+  ...CHAT_PRESETS.normal,
+};
+
 export type SaveState = {
   character: Character;
   portrait?: string | null; // legado — não usado mais
   messages: ChatMessage[];
   warningSeen: boolean;
   discoveredClues?: string[];
+  chatSettings?: ChatSettings;
 };
 
 export const DEFAULT_CHARACTER: Character = {
