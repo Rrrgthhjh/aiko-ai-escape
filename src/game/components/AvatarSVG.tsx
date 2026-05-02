@@ -158,6 +158,9 @@ export default function AvatarSVG({
         </linearGradient>
       </defs>
 
+      {/* ══════ HAIR BACK LONG (atrás de tudo — cabelo que desce pelas costas) ══════ */}
+      <HairBackLong style={character.hairStyle} color={hair} dark={hD} dark2={hD2} light={hL} light2={hL2} uid={uid} />
+
       {/* ══════ LEGS ══════ */}
       <LegsRealistic skin={skin} s1={s1} s2={s2} sL={sL} sHL={sHL} outfit={outfit} oD={oD} oD2={oD2} oL={oL} isSkirt={isSkirt} outfitStyle={character.outfitStyle} uid={uid} />
 
@@ -183,7 +186,8 @@ export default function AvatarSVG({
 
       {/* ══════ HEAD ══════ */}
       <g filter={`url(#${uid}softSh)`}>
-        <HairBackRealistic style={character.hairStyle} color={hair} dark={hD} dark2={hD2} light={hL} light2={hL2} uid={uid} />
+        {/* Calota / cabeça do cabelo — cobre o topo da cabeça e para no nível dos ombros */}
+        <HairCrown style={character.hairStyle} color={hair} dark={hD} dark2={hD2} light={hL} light2={hL2} uid={uid} />
 
         {/* Face base — realistic oval with refined jaw */}
         <path d="M144,228 Q134,195 140,160 Q148,122 200,115 Q252,122 260,160 Q266,195 256,228 Q250,268 230,290 Q218,304 200,308 Q182,304 170,290 Q150,268 144,228 Z" fill={`url(#${uid}face)`} />
