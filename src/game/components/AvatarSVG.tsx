@@ -158,6 +158,9 @@ export default function AvatarSVG({
         </linearGradient>
       </defs>
 
+      {/* ══════ HAIR BACK LONG (atrás de tudo — cabelo que desce pelas costas) ══════ */}
+      <HairBackLong style={character.hairStyle} color={hair} dark={hD} dark2={hD2} light={hL} light2={hL2} uid={uid} />
+
       {/* ══════ LEGS ══════ */}
       <LegsRealistic skin={skin} s1={s1} s2={s2} sL={sL} sHL={sHL} outfit={outfit} oD={oD} oD2={oD2} oL={oL} isSkirt={isSkirt} outfitStyle={character.outfitStyle} uid={uid} />
 
@@ -183,7 +186,8 @@ export default function AvatarSVG({
 
       {/* ══════ HEAD ══════ */}
       <g filter={`url(#${uid}softSh)`}>
-        <HairBackRealistic style={character.hairStyle} color={hair} dark={hD} dark2={hD2} light={hL} light2={hL2} uid={uid} />
+        {/* Calota / cabeça do cabelo — cobre o topo da cabeça e para no nível dos ombros */}
+        <HairCrown style={character.hairStyle} color={hair} dark={hD} dark2={hD2} light={hL} light2={hL2} uid={uid} />
 
         {/* Face base — realistic oval with refined jaw */}
         <path d="M144,228 Q134,195 140,160 Q148,122 200,115 Q252,122 260,160 Q266,195 256,228 Q250,268 230,290 Q218,304 200,308 Q182,304 170,290 Q150,268 144,228 Z" fill={`url(#${uid}face)`} />
@@ -451,9 +455,26 @@ function LegsRealistic({ skin, s1, s2, sL, sHL, outfit, oD, oD2, oL, isSkirt, ou
           <path d="M162,710 Q159,750 156,840 Q156,850 164,853 L182,853 Q188,850 187,840 Q185,750 182,710 Z" fill={skin} />
           {/* Right leg skin */}
           <path d="M218,710 Q221,750 224,840 Q224,850 216,853 L198,853 Q192,850 193,840 Q195,750 198,710 Z" fill={skin} />
-          {/* Knee highlight */}
-          <ellipse cx="172" cy="760" rx="7" ry="12" fill={sHL} opacity="0.1" />
-          <ellipse cx="210" cy="760" rx="7" ry="12" fill={sHL} opacity="0.1" />
+          {/* ── Joelho — rótula anatômica ── */}
+          <g>
+            {/* Sombra acima do joelho (coxa) */}
+            <ellipse cx="172" cy="752" rx="14" ry="6" fill={s2} opacity="0.12" filter={`url(#${uid}blur3)`} />
+            <ellipse cx="210" cy="752" rx="14" ry="6" fill={s2} opacity="0.12" filter={`url(#${uid}blur3)`} />
+            {/* Rótula (patela) */}
+            <ellipse cx="172" cy="762" rx="9" ry="11" fill={sL} opacity="0.35" />
+            <ellipse cx="210" cy="762" rx="9" ry="11" fill={sL} opacity="0.35" />
+            {/* Highlight central da patela */}
+            <ellipse cx="172" cy="760" rx="4" ry="6" fill={sHL} opacity="0.4" />
+            <ellipse cx="210" cy="760" rx="4" ry="6" fill={sHL} opacity="0.4" />
+            {/* Contorno inferior da rótula */}
+            <path d="M164,768 Q172,774 180,768" stroke={s2} strokeWidth="0.7" fill="none" opacity="0.3" />
+            <path d="M202,768 Q210,774 218,768" stroke={s2} strokeWidth="0.7" fill="none" opacity="0.3" />
+            {/* Dobra/rugas laterais */}
+            <path d="M162,756 Q160,762 162,770" stroke={s2} strokeWidth="0.5" fill="none" opacity="0.2" />
+            <path d="M182,756 Q184,762 182,770" stroke={s2} strokeWidth="0.5" fill="none" opacity="0.2" />
+            <path d="M200,756 Q198,762 200,770" stroke={s2} strokeWidth="0.5" fill="none" opacity="0.2" />
+            <path d="M220,756 Q222,762 220,770" stroke={s2} strokeWidth="0.5" fill="none" opacity="0.2" />
+          </g>
           {/* Calf muscle shadow */}
           <path d="M165,775 Q168,800 170,835" stroke={s1} strokeWidth="1.2" fill="none" opacity="0.12" />
           <path d="M215,775 Q212,800 210,835" stroke={s1} strokeWidth="1.2" fill="none" opacity="0.12" />
@@ -463,9 +484,16 @@ function LegsRealistic({ skin, s1, s2, sL, sHL, outfit, oD, oD2, oL, isSkirt, ou
           {/* Shin highlight */}
           <path d="M170,730 Q170,780 170,830" stroke={sL} strokeWidth="2" fill="none" opacity="0.06" />
           <path d="M210,730 Q210,780 210,830" stroke={sL} strokeWidth="2" fill="none" opacity="0.06" />
-          {/* Ankle narrowing shadow */}
+          {/* Tornozelo — maléolo (osso saliente) */}
+          <ellipse cx="166" cy="844" rx="2.5" ry="3.5" fill={sHL} opacity="0.4" />
+          <ellipse cx="178" cy="846" rx="2" ry="3" fill={s2} opacity="0.18" />
+          <ellipse cx="204" cy="846" rx="2" ry="3" fill={s2} opacity="0.18" />
+          <ellipse cx="216" cy="844" rx="2.5" ry="3.5" fill={sHL} opacity="0.4" />
           <ellipse cx="172" cy="842" rx="8" ry="3" fill={s1} opacity="0.1" />
           <ellipse cx="210" cy="842" rx="8" ry="3" fill={s1} opacity="0.1" />
+          {/* Tendão de Aquiles (sombra atrás) */}
+          <path d="M172,840 Q172,848 172,852" stroke={s2} strokeWidth="1" fill="none" opacity="0.15" />
+          <path d="M210,840 Q210,848 210,852" stroke={s2} strokeWidth="1" fill="none" opacity="0.15" />
         </g>
       )}
       {!isSkirt && (
@@ -516,18 +544,33 @@ function ArmsRealistic({ skin, s1, s2, s3, sL, sHL, outfit, oD, oD2, uid }: {
 
         {/* Hand — detailed */}
         <g>
-          <path d="M100,608 Q94,618 92,632 Q90,646 98,648 Q104,646 108,638 Q112,630 114,622 Q116,614 110,608 Z" fill={skin} />
-          {/* Finger separation lines */}
-          <path d="M94,632 Q92,640 94,646" stroke={s1} strokeWidth="0.5" fill="none" opacity="0.25" />
-          <path d="M98,630 Q96,640 98,648" stroke={s1} strokeWidth="0.4" fill="none" opacity="0.2" />
-          <path d="M102,628 Q100,638 102,646" stroke={s1} strokeWidth="0.4" fill="none" opacity="0.18" />
-          {/* Thumb */}
-          <path d="M112,614 Q118,620 118,630 Q116,632 112,626" fill={skin} stroke={s1} strokeWidth="0.4" opacity="0.8" />
+          {/* Palma da mão */}
+          <path d="M100,610 Q92,620 92,634 Q94,644 104,644 Q116,640 118,628 Q118,616 110,610 Z" fill={skin} stroke={s1} strokeWidth="0.4" opacity="0.95" />
+          {/* Polegar — saliente para fora */}
+          <path d="M114,616 Q122,618 124,626 Q124,632 118,632 Q114,628 112,622 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="121" cy="623" rx="1.4" ry="2" fill={sL} opacity="0.25" />
+          {/* 4 dedos individuais */}
+          {/* Indicador */}
+          <path d="M91,635 Q88,648 89,660 Q92,664 95,660 Q97,650 95,636 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="92" cy="660" rx="1.6" ry="1.2" fill={sL} opacity="0.35" />
+          {/* Médio */}
+          <path d="M97,638 Q95,652 96,666 Q100,670 103,666 Q105,652 103,638 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="100" cy="666" rx="1.6" ry="1.2" fill={sL} opacity="0.35" />
+          {/* Anelar */}
+          <path d="M104,640 Q102,652 103,664 Q107,668 110,664 Q112,652 110,640 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="107" cy="664" rx="1.5" ry="1.1" fill={sL} opacity="0.35" />
+          {/* Mindinho */}
+          <path d="M111,640 Q110,650 111,658 Q114,662 116,658 Q118,650 116,640 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="114" cy="658" rx="1.3" ry="1" fill={sL} opacity="0.35" />
+          {/* Articulações dos dedos */}
+          <path d="M89,648 Q92,650 95,648" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M96,652 Q100,654 103,652" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M103,652 Q107,654 110,652" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M111,650 Q114,652 116,650" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          {/* Linha da palma */}
+          <path d="M98,624 Q106,628 114,624" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.18" />
           {/* Knuckle highlights */}
-          <ellipse cx="104" cy="614" rx="5" ry="3" fill={sHL} opacity="0.08" />
-          {/* Nail hints */}
-          <ellipse cx="94" cy="644" rx="2" ry="1.5" fill={sL} opacity="0.12" />
-          <ellipse cx="98" cy="646" rx="2" ry="1.5" fill={sL} opacity="0.12" />
+          <ellipse cx="105" cy="638" rx="6" ry="2" fill={sHL} opacity="0.12" />
         </g>
       </g>
 
@@ -543,14 +586,26 @@ function ArmsRealistic({ skin, s1, s2, s3, sL, sHL, outfit, oD, oD2, uid }: {
         <path d="M296,605 Q290,608 282,605" stroke={s1} strokeWidth="0.5" fill="none" opacity="0.15" />
 
         <g>
-          <path d="M300,608 Q306,618 308,632 Q310,646 302,648 Q296,646 292,638 Q288,630 286,622 Q284,614 290,608 Z" fill={skin} />
-          <path d="M306,632 Q308,640 306,646" stroke={s1} strokeWidth="0.5" fill="none" opacity="0.25" />
-          <path d="M302,630 Q304,640 302,648" stroke={s1} strokeWidth="0.4" fill="none" opacity="0.2" />
-          <path d="M298,628 Q300,638 298,646" stroke={s1} strokeWidth="0.4" fill="none" opacity="0.18" />
-          <path d="M288,614 Q282,620 282,630 Q284,632 288,626" fill={skin} stroke={s1} strokeWidth="0.4" opacity="0.8" />
-          <ellipse cx="296" cy="614" rx="5" ry="3" fill={sHL} opacity="0.08" />
-          <ellipse cx="306" cy="644" rx="2" ry="1.5" fill={sL} opacity="0.12" />
-          <ellipse cx="302" cy="646" rx="2" ry="1.5" fill={sL} opacity="0.12" />
+          {/* Palma */}
+          <path d="M300,610 Q308,620 308,634 Q306,644 296,644 Q284,640 282,628 Q282,616 290,610 Z" fill={skin} stroke={s1} strokeWidth="0.4" opacity="0.95" />
+          {/* Polegar */}
+          <path d="M286,616 Q278,618 276,626 Q276,632 282,632 Q286,628 288,622 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="279" cy="623" rx="1.4" ry="2" fill={sL} opacity="0.25" />
+          {/* Dedos espelhados */}
+          <path d="M309,635 Q312,648 311,660 Q308,664 305,660 Q303,650 305,636 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="308" cy="660" rx="1.6" ry="1.2" fill={sL} opacity="0.35" />
+          <path d="M303,638 Q305,652 304,666 Q300,670 297,666 Q295,652 297,638 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="300" cy="666" rx="1.6" ry="1.2" fill={sL} opacity="0.35" />
+          <path d="M296,640 Q298,652 297,664 Q293,668 290,664 Q288,652 290,640 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="293" cy="664" rx="1.5" ry="1.1" fill={sL} opacity="0.35" />
+          <path d="M289,640 Q290,650 289,658 Q286,662 284,658 Q282,650 284,640 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="286" cy="658" rx="1.3" ry="1" fill={sL} opacity="0.35" />
+          <path d="M305,648 Q308,650 311,648" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M297,652 Q300,654 304,652" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M290,652 Q293,654 297,652" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M284,650 Q286,652 289,650" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M286,624 Q294,628 302,624" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.18" />
+          <ellipse cx="295" cy="638" rx="6" ry="2" fill={sHL} opacity="0.12" />
         </g>
       </g>
     </g>
@@ -688,85 +743,105 @@ function OutfitBodyRealistic({ style, color, dark, dark2, light, light2, mid, ui
 }
 
 /* ══════════════════════════════════════════════════════════
-   HAIR BACK
+   HAIR CROWN — calota que cobre o topo da cabeça (sem descer pelo pescoço)
    ══════════════════════════════════════════════════════════ */
-function HairBackRealistic({ style, color, dark, dark2, light, light2, uid }: {
+function HairCrown({ style, color, dark, dark2, light, light2, uid }: {
   style: HairStyle; color: string; dark: string; dark2: string; light: string; light2: string; uid: string;
 }) {
   const sheenPath = (d: string) => <path d={d} stroke={light2} strokeWidth="2.5" fill="none" opacity="0.2" />;
   const strandShadow = (d: string) => <path d={d} stroke={dark} strokeWidth="1.5" fill="none" opacity="0.15" />;
 
+  // Calota base — cobre todo o topo do crânio (y=104) até a linha do queixo (y=300),
+  // contorna a cabeça por trás SEM descer pelo pescoço/ombros.
+  const crown = (
+    <g>
+      <path d="M118,210 Q98,138 200,104 Q302,138 282,210 Q286,260 278,300 L262,300 Q258,232 200,222 Q142,232 138,300 L122,300 Q114,260 118,210 Z" fill={`url(#${uid}hair)`} />
+      <path d="M118,210 Q98,138 200,104 Q302,138 282,210 Q286,260 278,300 L262,300 Q258,232 200,222 Q142,232 138,300 L122,300 Q114,260 118,210 Z" fill={`url(#${uid}hairSheen)`} />
+      {sheenPath("M165,128 Q192,120 222,128")}
+      {sheenPath("M150,150 Q180,142 212,150")}
+      {strandShadow("M128,170 Q120,230 124,290")}
+      {strandShadow("M272,170 Q280,230 276,290")}
+    </g>
+  );
+
   switch (style) {
     case "long":
-      return (
-        <g>
-          <path d="M118,215 Q98,148 200,118 Q302,148 282,215 L306,565 Q200,588 94,565 Z" fill={`url(#${uid}hair)`} />
-          <path d="M118,215 Q98,148 200,118 Q302,148 282,215 L306,565 Q200,588 94,565 Z" fill={`url(#${uid}hairSheen)`} />
-          {strandShadow("M122,220 Q112,340 100,530")}
-          {strandShadow("M148,170 Q132,320 118,510")}
-          {strandShadow("M280,220 Q290,340 300,530")}
-          {strandShadow("M260,170 Q270,320 282,510")}
-          {sheenPath("M170,132 Q192,125 220,132")}
-          {sheenPath("M155,155 Q180,148 210,155")}
-          {/* Volume strands */}
-          <path d="M100,350 Q95,400 94,500" stroke={dark2} strokeWidth="1" fill="none" opacity="0.08" />
-          <path d="M300,350 Q305,400 306,500" stroke={dark2} strokeWidth="1" fill="none" opacity="0.08" />
-        </g>
-      );
+    case "twin":
+    case "ponytail":
+      return crown;
     case "short":
       return (
         <g>
-          <path d="M125,210 Q108,145 200,118 Q292,145 275,210 L282,300 Q200,320 118,300 Z" fill={`url(#${uid}hair)`} />
-          <path d="M125,210 Q108,145 200,118 Q292,145 275,210 L282,300 Q200,320 118,300 Z" fill={`url(#${uid}hairSheen)`} />
-          {sheenPath("M170,132 Q192,125 220,132")}
-          {strandShadow("M135,180 Q128,230 122,280")}
-          {strandShadow("M265,180 Q272,230 278,280")}
-        </g>
-      );
-    case "twin":
-      return (
-        <g>
-          <path d="M120,210 Q106,145 200,118 Q294,145 280,210 L282,300 Q200,320 118,300 Z" fill={`url(#${uid}hair)`} />
-          <path d="M120,210 Q106,145 200,118 Q294,145 280,210 L282,300 Q200,320 118,300 Z" fill={`url(#${uid}hairSheen)`} />
-          {/* Left pigtail */}
-          <path d="M96,318 Q76,445 100,590 Q114,590 124,575 Q138,470 124,330 Z" fill={color} />
-          <path d="M100,340 Q84,445 102,560" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.15" />
-          <path d="M115,340 Q105,440 112,550" stroke={light} strokeWidth="1.2" fill="none" opacity="0.1" />
-          {/* Right pigtail */}
-          <path d="M304,318 Q324,445 300,590 Q286,590 276,575 Q262,470 276,330 Z" fill={color} />
-          <path d="M300,340 Q316,445 298,560" stroke={dark} strokeWidth="1.5" fill="none" opacity="0.15" />
-          <path d="M285,340 Q295,440 288,550" stroke={light} strokeWidth="1.2" fill="none" opacity="0.1" />
-          {/* Hair ties */}
-          <ellipse cx="110" cy="322" rx="9" ry="6" fill={dark} opacity="0.55" />
-          <ellipse cx="290" cy="322" rx="9" ry="6" fill={dark} opacity="0.55" />
-          {sheenPath("M170,132 Q192,125 220,132")}
+          {crown}
         </g>
       );
     case "bob":
       return (
         <g>
-          <path d="M120,215 Q106,145 200,118 Q294,145 280,215 L292,360 Q200,385 108,360 Z" fill={`url(#${uid}hair)`} />
-          <path d="M120,215 Q106,145 200,118 Q294,145 280,215 L292,360 Q200,385 108,360 Z" fill={`url(#${uid}hairSheen)`} />
+          {/* Bob tem volume lateral até o queixo */}
+          <path d="M118,210 Q98,138 200,104 Q302,138 282,210 L292,360 Q200,385 108,360 Z" fill={`url(#${uid}hair)`} />
+          <path d="M118,210 Q98,138 200,104 Q302,138 282,210 L292,360 Q200,385 108,360 Z" fill={`url(#${uid}hairSheen)`} />
           <path d="M112,355 Q148,378 200,382 Q252,378 288,355" stroke={dark} strokeWidth="2" fill="none" opacity="0.2" />
-          {sheenPath("M170,132 Q192,125 220,132")}
+          {sheenPath("M165,128 Q192,120 222,128")}
           {strandShadow("M130,180 Q118,260 112,340")}
           {strandShadow("M270,180 Q282,260 288,340")}
+        </g>
+      );
+  }
+}
+
+/* ══════════════════════════════════════════════════════════
+   HAIR BACK LONG — cabelo que desce pelas costas (atrás do corpo)
+   Renderizado ANTES de pernas/torso/braços, então fica naturalmente
+   coberto pela roupa nos ombros — não atravessa pescoço/blusa.
+   ══════════════════════════════════════════════════════════ */
+function HairBackLong({ style, color, dark, dark2, light, light2, uid }: {
+  style: HairStyle; color: string; dark: string; dark2: string; light: string; light2: string; uid: string;
+}) {
+  switch (style) {
+    case "long":
+      return (
+        <g>
+          {/* Massa principal que desce pelas costas — começa nos ombros */}
+          <path d="M120,300 Q96,420 92,580 Q120,602 200,604 Q280,602 308,580 Q304,420 280,300 Q260,330 200,330 Q140,330 120,300 Z" fill={`url(#${uid}hair)`} />
+          <path d="M120,300 Q96,420 92,580 Q120,602 200,604 Q280,602 308,580 Q304,420 280,300 Q260,330 200,330 Q140,330 120,300 Z" fill={`url(#${uid}hairSheen)`} />
+          <path d="M122,330 Q108,440 100,570" stroke={dark} strokeWidth="1.4" fill="none" opacity="0.15" />
+          <path d="M150,330 Q138,440 130,575" stroke={dark} strokeWidth="1" fill="none" opacity="0.1" />
+          <path d="M278,330 Q292,440 300,570" stroke={dark} strokeWidth="1.4" fill="none" opacity="0.15" />
+          <path d="M250,330 Q262,440 270,575" stroke={dark} strokeWidth="1" fill="none" opacity="0.1" />
+          <path d="M180,335 Q178,460 178,590" stroke={light} strokeWidth="0.8" fill="none" opacity="0.1" />
+          <path d="M220,335 Q222,460 222,590" stroke={light} strokeWidth="0.8" fill="none" opacity="0.1" />
+        </g>
+      );
+    case "twin":
+      return (
+        <g>
+          {/* Maria-chiquinhas — saem da altura das orelhas */}
+          <ellipse cx="118" cy="294" rx="11" ry="7" fill={dark} opacity="0.6" />
+          <ellipse cx="282" cy="294" rx="11" ry="7" fill={dark} opacity="0.6" />
+          <path d="M100,300 Q72,440 96,600 Q116,608 130,590 Q140,460 132,310 Z" fill={color} />
+          <path d="M100,300 Q72,440 96,600 Q116,608 130,590 Q140,460 132,310 Z" fill={`url(#${uid}hairSheen)`} opacity="0.6" />
+          <path d="M105,330 Q86,450 104,580" stroke={dark} strokeWidth="1.4" fill="none" opacity="0.18" />
+          <path d="M120,330 Q108,450 116,570" stroke={light} strokeWidth="1" fill="none" opacity="0.1" />
+          <path d="M300,300 Q328,440 304,600 Q284,608 270,590 Q260,460 268,310 Z" fill={color} />
+          <path d="M300,300 Q328,440 304,600 Q284,608 270,590 Q260,460 268,310 Z" fill={`url(#${uid}hairSheen)`} opacity="0.6" />
+          <path d="M295,330 Q314,450 296,580" stroke={dark} strokeWidth="1.4" fill="none" opacity="0.18" />
+          <path d="M280,330 Q292,450 284,570" stroke={light} strokeWidth="1" fill="none" opacity="0.1" />
         </g>
       );
     case "ponytail":
       return (
         <g>
-          <path d="M125,210 Q108,145 200,118 Q292,145 275,210 L282,300 Q200,320 118,300 Z" fill={`url(#${uid}hair)`} />
-          <path d="M125,210 Q108,145 200,118 Q292,145 275,210 L282,300 Q200,320 118,300 Z" fill={`url(#${uid}hairSheen)`} />
-          {/* Ponytail */}
-          <path d="M275,228 Q330,345 310,535 Q300,548 288,535 Q282,400 254,280 Z" fill={color} />
-          <path d="M280,250 Q320,350 306,520" stroke={dark} strokeWidth="1.8" fill="none" opacity="0.15" />
-          <path d="M270,260 Q300,360 290,510" stroke={light} strokeWidth="1.2" fill="none" opacity="0.1" />
-          {/* Hair tie */}
-          <ellipse cx="270" cy="238" rx="9" ry="6" fill={dark} opacity="0.55" />
-          {sheenPath("M170,132 Q192,125 220,132")}
+          {/* Rabo de cavalo lateral */}
+          <ellipse cx="278" cy="232" rx="11" ry="7" fill={dark} opacity="0.6" />
+          <path d="M278,238 Q336,360 316,540 Q304,552 290,540 Q282,400 258,278 Z" fill={color} />
+          <path d="M278,238 Q336,360 316,540 Q304,552 290,540 Q282,400 258,278 Z" fill={`url(#${uid}hairSheen)`} opacity="0.5" />
+          <path d="M285,260 Q322,360 310,520" stroke={dark} strokeWidth="1.6" fill="none" opacity="0.18" />
+          <path d="M270,270 Q300,365 292,500" stroke={light} strokeWidth="1.1" fill="none" opacity="0.12" />
         </g>
       );
+    default:
+      return null;
   }
 }
 
