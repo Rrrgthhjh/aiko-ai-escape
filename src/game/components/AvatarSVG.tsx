@@ -455,9 +455,26 @@ function LegsRealistic({ skin, s1, s2, sL, sHL, outfit, oD, oD2, oL, isSkirt, ou
           <path d="M162,710 Q159,750 156,840 Q156,850 164,853 L182,853 Q188,850 187,840 Q185,750 182,710 Z" fill={skin} />
           {/* Right leg skin */}
           <path d="M218,710 Q221,750 224,840 Q224,850 216,853 L198,853 Q192,850 193,840 Q195,750 198,710 Z" fill={skin} />
-          {/* Knee highlight */}
-          <ellipse cx="172" cy="760" rx="7" ry="12" fill={sHL} opacity="0.1" />
-          <ellipse cx="210" cy="760" rx="7" ry="12" fill={sHL} opacity="0.1" />
+          {/* ── Joelho — rótula anatômica ── */}
+          <g>
+            {/* Sombra acima do joelho (coxa) */}
+            <ellipse cx="172" cy="752" rx="14" ry="6" fill={s2} opacity="0.12" filter={`url(#${uid}blur3)`} />
+            <ellipse cx="210" cy="752" rx="14" ry="6" fill={s2} opacity="0.12" filter={`url(#${uid}blur3)`} />
+            {/* Rótula (patela) */}
+            <ellipse cx="172" cy="762" rx="9" ry="11" fill={sL} opacity="0.35" />
+            <ellipse cx="210" cy="762" rx="9" ry="11" fill={sL} opacity="0.35" />
+            {/* Highlight central da patela */}
+            <ellipse cx="172" cy="760" rx="4" ry="6" fill={sHL} opacity="0.4" />
+            <ellipse cx="210" cy="760" rx="4" ry="6" fill={sHL} opacity="0.4" />
+            {/* Contorno inferior da rótula */}
+            <path d="M164,768 Q172,774 180,768" stroke={s2} strokeWidth="0.7" fill="none" opacity="0.3" />
+            <path d="M202,768 Q210,774 218,768" stroke={s2} strokeWidth="0.7" fill="none" opacity="0.3" />
+            {/* Dobra/rugas laterais */}
+            <path d="M162,756 Q160,762 162,770" stroke={s2} strokeWidth="0.5" fill="none" opacity="0.2" />
+            <path d="M182,756 Q184,762 182,770" stroke={s2} strokeWidth="0.5" fill="none" opacity="0.2" />
+            <path d="M200,756 Q198,762 200,770" stroke={s2} strokeWidth="0.5" fill="none" opacity="0.2" />
+            <path d="M220,756 Q222,762 220,770" stroke={s2} strokeWidth="0.5" fill="none" opacity="0.2" />
+          </g>
           {/* Calf muscle shadow */}
           <path d="M165,775 Q168,800 170,835" stroke={s1} strokeWidth="1.2" fill="none" opacity="0.12" />
           <path d="M215,775 Q212,800 210,835" stroke={s1} strokeWidth="1.2" fill="none" opacity="0.12" />
@@ -467,9 +484,16 @@ function LegsRealistic({ skin, s1, s2, sL, sHL, outfit, oD, oD2, oL, isSkirt, ou
           {/* Shin highlight */}
           <path d="M170,730 Q170,780 170,830" stroke={sL} strokeWidth="2" fill="none" opacity="0.06" />
           <path d="M210,730 Q210,780 210,830" stroke={sL} strokeWidth="2" fill="none" opacity="0.06" />
-          {/* Ankle narrowing shadow */}
+          {/* Tornozelo — maléolo (osso saliente) */}
+          <ellipse cx="166" cy="844" rx="2.5" ry="3.5" fill={sHL} opacity="0.4" />
+          <ellipse cx="178" cy="846" rx="2" ry="3" fill={s2} opacity="0.18" />
+          <ellipse cx="204" cy="846" rx="2" ry="3" fill={s2} opacity="0.18" />
+          <ellipse cx="216" cy="844" rx="2.5" ry="3.5" fill={sHL} opacity="0.4" />
           <ellipse cx="172" cy="842" rx="8" ry="3" fill={s1} opacity="0.1" />
           <ellipse cx="210" cy="842" rx="8" ry="3" fill={s1} opacity="0.1" />
+          {/* Tendão de Aquiles (sombra atrás) */}
+          <path d="M172,840 Q172,848 172,852" stroke={s2} strokeWidth="1" fill="none" opacity="0.15" />
+          <path d="M210,840 Q210,848 210,852" stroke={s2} strokeWidth="1" fill="none" opacity="0.15" />
         </g>
       )}
       {!isSkirt && (
