@@ -1,13 +1,14 @@
 export type Character = {
   name: string;
   playerName: string;
-  skinColor: string;      // hex
-  hairColor: string;      // hex
-  hairStyle: HairStyle;
-  eyeColor: string;       // hex
-  outfitColor: string;    // hex
-  outfitStyle: OutfitStyle;
   personality: string;
+  // Campos legados — mantidos opcionais para retrocompatibilidade de saves antigos
+  skinColor?: string;
+  hairColor?: string;
+  hairStyle?: HairStyle;
+  eyeColor?: string;
+  outfitColor?: string;
+  outfitStyle?: OutfitStyle;
 };
 
 export type HairStyle = "long" | "short" | "twin" | "bob" | "ponytail";
@@ -45,7 +46,7 @@ export const DEFAULT_CHAT_SETTINGS: ChatSettings = {
 
 export type SaveState = {
   character: Character;
-  portrait?: string | null; // legado — não usado mais
+  portrait?: string | null; // legado
   messages: ChatMessage[];
   warningSeen: boolean;
   discoveredClues?: string[];
@@ -55,11 +56,5 @@ export type SaveState = {
 export const DEFAULT_CHARACTER: Character = {
   name: "Aiko",
   playerName: "",
-  skinColor: "#f5d6c0",
-  hairColor: "#1a1530",
-  hairStyle: "long",
-  eyeColor: "#8b5cf6",
-  outfitColor: "#2a1f3d",
-  outfitStyle: "dress",
   personality: "Doce e atenciosa por fora, possessiva por dentro.",
 };
