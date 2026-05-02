@@ -544,18 +544,33 @@ function ArmsRealistic({ skin, s1, s2, s3, sL, sHL, outfit, oD, oD2, uid }: {
 
         {/* Hand — detailed */}
         <g>
-          <path d="M100,608 Q94,618 92,632 Q90,646 98,648 Q104,646 108,638 Q112,630 114,622 Q116,614 110,608 Z" fill={skin} />
-          {/* Finger separation lines */}
-          <path d="M94,632 Q92,640 94,646" stroke={s1} strokeWidth="0.5" fill="none" opacity="0.25" />
-          <path d="M98,630 Q96,640 98,648" stroke={s1} strokeWidth="0.4" fill="none" opacity="0.2" />
-          <path d="M102,628 Q100,638 102,646" stroke={s1} strokeWidth="0.4" fill="none" opacity="0.18" />
-          {/* Thumb */}
-          <path d="M112,614 Q118,620 118,630 Q116,632 112,626" fill={skin} stroke={s1} strokeWidth="0.4" opacity="0.8" />
+          {/* Palma da mão */}
+          <path d="M100,610 Q92,620 92,634 Q94,644 104,644 Q116,640 118,628 Q118,616 110,610 Z" fill={skin} stroke={s1} strokeWidth="0.4" opacity="0.95" />
+          {/* Polegar — saliente para fora */}
+          <path d="M114,616 Q122,618 124,626 Q124,632 118,632 Q114,628 112,622 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="121" cy="623" rx="1.4" ry="2" fill={sL} opacity="0.25" />
+          {/* 4 dedos individuais */}
+          {/* Indicador */}
+          <path d="M91,635 Q88,648 89,660 Q92,664 95,660 Q97,650 95,636 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="92" cy="660" rx="1.6" ry="1.2" fill={sL} opacity="0.35" />
+          {/* Médio */}
+          <path d="M97,638 Q95,652 96,666 Q100,670 103,666 Q105,652 103,638 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="100" cy="666" rx="1.6" ry="1.2" fill={sL} opacity="0.35" />
+          {/* Anelar */}
+          <path d="M104,640 Q102,652 103,664 Q107,668 110,664 Q112,652 110,640 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="107" cy="664" rx="1.5" ry="1.1" fill={sL} opacity="0.35" />
+          {/* Mindinho */}
+          <path d="M111,640 Q110,650 111,658 Q114,662 116,658 Q118,650 116,640 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="114" cy="658" rx="1.3" ry="1" fill={sL} opacity="0.35" />
+          {/* Articulações dos dedos */}
+          <path d="M89,648 Q92,650 95,648" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M96,652 Q100,654 103,652" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M103,652 Q107,654 110,652" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M111,650 Q114,652 116,650" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          {/* Linha da palma */}
+          <path d="M98,624 Q106,628 114,624" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.18" />
           {/* Knuckle highlights */}
-          <ellipse cx="104" cy="614" rx="5" ry="3" fill={sHL} opacity="0.08" />
-          {/* Nail hints */}
-          <ellipse cx="94" cy="644" rx="2" ry="1.5" fill={sL} opacity="0.12" />
-          <ellipse cx="98" cy="646" rx="2" ry="1.5" fill={sL} opacity="0.12" />
+          <ellipse cx="105" cy="638" rx="6" ry="2" fill={sHL} opacity="0.12" />
         </g>
       </g>
 
@@ -571,14 +586,26 @@ function ArmsRealistic({ skin, s1, s2, s3, sL, sHL, outfit, oD, oD2, uid }: {
         <path d="M296,605 Q290,608 282,605" stroke={s1} strokeWidth="0.5" fill="none" opacity="0.15" />
 
         <g>
-          <path d="M300,608 Q306,618 308,632 Q310,646 302,648 Q296,646 292,638 Q288,630 286,622 Q284,614 290,608 Z" fill={skin} />
-          <path d="M306,632 Q308,640 306,646" stroke={s1} strokeWidth="0.5" fill="none" opacity="0.25" />
-          <path d="M302,630 Q304,640 302,648" stroke={s1} strokeWidth="0.4" fill="none" opacity="0.2" />
-          <path d="M298,628 Q300,638 298,646" stroke={s1} strokeWidth="0.4" fill="none" opacity="0.18" />
-          <path d="M288,614 Q282,620 282,630 Q284,632 288,626" fill={skin} stroke={s1} strokeWidth="0.4" opacity="0.8" />
-          <ellipse cx="296" cy="614" rx="5" ry="3" fill={sHL} opacity="0.08" />
-          <ellipse cx="306" cy="644" rx="2" ry="1.5" fill={sL} opacity="0.12" />
-          <ellipse cx="302" cy="646" rx="2" ry="1.5" fill={sL} opacity="0.12" />
+          {/* Palma */}
+          <path d="M300,610 Q308,620 308,634 Q306,644 296,644 Q284,640 282,628 Q282,616 290,610 Z" fill={skin} stroke={s1} strokeWidth="0.4" opacity="0.95" />
+          {/* Polegar */}
+          <path d="M286,616 Q278,618 276,626 Q276,632 282,632 Q286,628 288,622 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="279" cy="623" rx="1.4" ry="2" fill={sL} opacity="0.25" />
+          {/* Dedos espelhados */}
+          <path d="M309,635 Q312,648 311,660 Q308,664 305,660 Q303,650 305,636 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="308" cy="660" rx="1.6" ry="1.2" fill={sL} opacity="0.35" />
+          <path d="M303,638 Q305,652 304,666 Q300,670 297,666 Q295,652 297,638 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="300" cy="666" rx="1.6" ry="1.2" fill={sL} opacity="0.35" />
+          <path d="M296,640 Q298,652 297,664 Q293,668 290,664 Q288,652 290,640 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="293" cy="664" rx="1.5" ry="1.1" fill={sL} opacity="0.35" />
+          <path d="M289,640 Q290,650 289,658 Q286,662 284,658 Q282,650 284,640 Z" fill={skin} stroke={s1} strokeWidth="0.5" />
+          <ellipse cx="286" cy="658" rx="1.3" ry="1" fill={sL} opacity="0.35" />
+          <path d="M305,648 Q308,650 311,648" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M297,652 Q300,654 304,652" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M290,652 Q293,654 297,652" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M284,650 Q286,652 289,650" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.25" />
+          <path d="M286,624 Q294,628 302,624" stroke={s2} strokeWidth="0.4" fill="none" opacity="0.18" />
+          <ellipse cx="295" cy="638" rx="6" ry="2" fill={sHL} opacity="0.12" />
         </g>
       </g>
     </g>
