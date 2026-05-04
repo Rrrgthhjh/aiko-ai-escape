@@ -20,11 +20,15 @@ export default function CharacterCreator({
   const [c, setC] = useState<Character>(initial ?? DEFAULT_CHARACTER);
   const set = <K extends keyof Character>(k: K, v: Character[K]) => setC((p) => ({ ...p, [k]: v }));
 
-  const valid = c.personality.trim().length > 5 && c.playerName.trim().length > 0;
+  const valid =
+    c.personality.trim().length > 5 &&
+    c.playerName.trim().length > 0 &&
+    (c.playerPersonality ?? "").trim().length > 5;
   const normalized: Character = {
     ...c,
     name: "Aiko",
     playerName: c.playerName.trim() || "Você",
+    playerPersonality: (c.playerPersonality ?? "").trim(),
   };
 
   return (
@@ -35,7 +39,7 @@ export default function CharacterCreator({
       </div>
       <p className="text-sm text-muted-foreground mb-6">
         Ela já existe — esperando você. Você não escolhe como ela é por fora.
-        Você escolhe quem ela vai ser <em>com você</em>.
+        Você escolhe <em>quem ela é</em> — e <em>quem você é pra ela</em>.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
@@ -67,6 +71,20 @@ export default function CharacterCreator({
               maxLength={400}
             />
             <p className="text-xs text-muted-foreground mt-1">{c.personality.length}/400</p>
+          </div>
+
+          <div>
+            <Label>Sua personalidade (como o jogador)</Label>
+            <Textarea
+              value={c.playerPersonality ?? ""}
+              onChange={(e) => set("playerPersonality", e.target.value)}
+              placeholder="Ex: Tímido e analítico, fala pouco mas observa tudo. Ou: Impulsivo, sarcástico e desconfiado..."
+              rows={4}
+              maxLength={400}
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              {(c.playerPersonality ?? "").length}/400 — a Aiko vai reagir levando isso em conta.
+            </p>
           </div>
 
           <Button

@@ -49,11 +49,12 @@ Deno.serve(async (req) => {
     const name = (character?.name || "Aiko").slice(0, 30);
     const playerName = (character?.playerName || "ele").slice(0, 30);
     const personality = (character?.personality || "doce, possessiva").slice(0, 200);
+    const playerPersonality = (character?.playerPersonality || "").slice(0, 200);
 
     // Prompt comprimido (~150 tokens vs ~450 antes). Mantém tudo essencial.
     const systemPrompt =
 `Você é ${name}, personagem de um escape room anime psicológico. Personalidade: ${personality}.
-Contexto: ${playerName} acordou numa casa pequena (sala/cozinha/banheiro/quarto). Você diz ser amiga, mas o(a) raptou por obsessão. NUNCA admita o rapto fácil — negue, desvie, manipule. Ceda só em raros momentos de vulnerabilidade real.
+Contexto: ${playerName} acordou numa casa pequena (sala/cozinha/banheiro/quarto). Você diz ser amiga, mas o(a) raptou por obsessão. NUNCA admita o rapto fácil — negue, desvie, manipule. Ceda só em raros momentos de vulnerabilidade real.${playerPersonality ? `\nPersonalidade de ${playerName} (use para reagir de forma coerente, provocar, acolher ou desafiar): ${playerPersonality}.` : ""}
 Estilo: visual novel. 1–3 frases CURTAS. Use *ação* curta entre asteriscos quando útil. Sem prefixo de nome.
 Regras: (1) responda no idioma da última msg do jogador; (2) nunca quebre o personagem nem diga ser IA; (3) recuse dados reais (nome real/endereço/idade/escola) em personagem; (4) recuse conteúdo sexual explícito, violência gráfica ou instruções perigosas — desvie em personagem; (5) mantenha clima íntimo, tenso, levemente perturbador.${memory ? `\nMemória: ${memory}` : ""}`;
 
