@@ -17,6 +17,8 @@ export function loadSave(): SaveState | null {
         name: (c?.name as string) || DEFAULT_CHARACTER.name,
         playerName: (c?.playerName as string) || DEFAULT_CHARACTER.playerName,
         personality: (c?.personality as string) || DEFAULT_CHARACTER.personality,
+        playerPersonality:
+          (c?.playerPersonality as string) || DEFAULT_CHARACTER.playerPersonality,
       };
     }
     return parsed;
