@@ -2,6 +2,8 @@ export type Character = {
   name: string;
   playerName: string;
   personality: string;
+  /** Personalidade/traços do jogador — usada pela IA para reagir a você de forma coerente. */
+  playerPersonality?: string;
   // Campos legados — mantidos opcionais para retrocompatibilidade de saves antigos
   skinColor?: string;
   hairColor?: string;
@@ -57,4 +59,5 @@ export const DEFAULT_CHARACTER: Character = {
   name: "Aiko",
   playerName: "",
   personality: "Doce e atenciosa por fora, possessiva por dentro.",
+  playerPersonality: "Curioso(a), cauteloso(a) e observador(a). Tenta entender antes de agir.",
 };
