@@ -72,11 +72,9 @@ function Room({ palette, clueFound = false, mood = "calm" }: { palette: { wall: 
         <meshBasicMaterial color="#9fc8ff" />
       </mesh>
       <pointLight ref={lightRef} position={[-3, 2.2, -1.5]} color="#9fc8ff" intensity={2.0} distance={14} />
-      {/* Lâmpada acento */}
       <pointLight position={[0, 3, 0]} color={palette.accent} intensity={1.6} distance={12} />
-      <pointLight position={[0, 1.5, 3]} color="#ffffff" intensity={0.6} distance={10} />
-      <ambientLight intensity={0.6} />
-      <hemisphereLight args={[palette.accent, palette.floor, 0.5]} />
+      <ambientLight intensity={0.8} />
+      <hemisphereLight args={[palette.accent, palette.floor, 0.6]} />
 
       {/* Móveis simples */}
       <mesh position={[2, -0.5, -3]} castShadow>
@@ -112,10 +110,14 @@ export default function Scene3D({ room, clueFound, mood }: Props) {
   const palette = ROOM_PALETTES[room];
   return (
     <Canvas
-      shadows
       camera={{ position: [0, 1.2, 3], fov: 60 }}
-      gl={{ antialias: true, powerPreference: "high-performance" }}
+      gl={{ antialias: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: false }}
       dpr={[1, 1.5]}
+      onCreated={({ gl }) => {
+        gl.domElement.addEventListener("webglcontextlost", (e) => {
+          e.preventDefault();
+        });
+      }}
     >
       <fog attach="fog" args={[palette.floor, 8, 20]} />
       <CameraRig />
