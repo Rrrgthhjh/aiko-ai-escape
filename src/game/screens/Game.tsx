@@ -6,6 +6,7 @@ import ChatPanel from "../components/ChatPanel";
 import PauseMenu from "../components/PauseMenu";
 import RoomPicker from "../components/RoomPicker";
 import AvatarSVG from "../components/AvatarSVG";
+import CreditIndicator from "../components/CreditIndicator";
 import type { SaveState, Character, ChatMessage, Mood, Room } from "../types";
 import { DEFAULT_CHAT_SETTINGS } from "../types";
 import type { ChatSettings } from "../types";
@@ -118,7 +119,8 @@ export default function Game({
       {!hudHidden && (
         <div className="absolute top-3 left-3 right-16 z-30 flex items-center justify-between gap-2 pointer-events-none">
           <RoomPicker current={room} onPick={changeRoom} />
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex items-center gap-2">
+            <CreditIndicator />
             <Button onClick={() => setPaused(true)} size="icon" variant="outline" className="bg-card-soft border-primary/40">
               <Pause className="w-4 h-4" />
             </Button>
