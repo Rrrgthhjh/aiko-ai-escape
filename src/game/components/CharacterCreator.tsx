@@ -4,9 +4,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles } from "lucide-react";
-import type { Character } from "../types";
+import type { AppearanceVariant, Character } from "../types";
 import { DEFAULT_CHARACTER } from "../types";
 import AvatarSVG from "./AvatarSVG";
+
+const APPEARANCE_OPTIONS: { value: AppearanceVariant; label: string }[] = [
+  { value: "dress", label: "Cabelo longo + vestido" },
+  { value: "hair-bob", label: "Cabelo bob" },
+  { value: "hair-short", label: "Cabelo curto" },
+  { value: "hair-twin", label: "Maria-chiquinhas" },
+  { value: "hair-ponytail", label: "Rabo de cavalo" },
+  { value: "outfit-uniform", label: "Uniforme escolar" },
+  { value: "outfit-hoodie", label: "Moletom oversized" },
+  { value: "outfit-yukata", label: "Yukata floral" },
+];
+
+const HUE_PRESETS: { label: string; value: number }[] = [
+  { label: "Original", value: 0 },
+  { label: "Rosa", value: 320 },
+  { label: "Âmbar", value: 30 },
+  { label: "Verde", value: 90 },
+  { label: "Azul", value: 200 },
+];
 
 export default function CharacterCreator({
   initial,
@@ -29,6 +48,8 @@ export default function CharacterCreator({
     name: "Aiko",
     playerName: c.playerName.trim() || "Você",
     playerPersonality: (c.playerPersonality ?? "").trim(),
+    appearance: c.appearance ?? "dress",
+    hueShift: c.hueShift ?? 0,
   };
 
   return (
@@ -38,8 +59,10 @@ export default function CharacterCreator({
         <h2 className="text-2xl font-display text-gradient">Conheça Aiko</h2>
       </div>
       <p className="text-sm text-muted-foreground mb-6">
-        Ela já existe — esperando você. Você não escolhe como ela é por fora.
-        Você escolhe <em>quem ela é</em> — e <em>quem você é pra ela</em>.
+        Ela já existe — esperando você. Escolha um visual, defina <em>quem ela é</em> e <em>quem você é pra ela</em>.
+        <span className="block mt-1 text-[11px] text-emerald-400/80">
+          Visual e cores: 0 créditos (imagens locais).
+        </span>
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-6">
@@ -48,6 +71,55 @@ export default function CharacterCreator({
         </div>
 
         <div className="space-y-5">
+          <div>
+            <Label>Visual</Label>
+            <div className="grid grid-cols-2 gap-1.5 mt-1.5">
+              {APPEARANCE_OPTIONS.map((opt) => {
+                const active = (c.appearance ?? "dress") === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => set("appearance", opt.value)}
+                    className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all text-left ${
+                      active
+                        ? "border-primary bg-primary/15 text-primary-glow shadow-glow"
+                        : "border-border/60 bg-background/40 hover:border-primary/40"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <Label>Paleta de cor</Label>
+            <div className="flex flex-wrap gap-1.5 mt-1.5">
+              {HUE_PRESETS.map((h) => {
+                const active = (c.hueShift ?? 0) === h.value;
+                return (
+                  <button
+                    key={h.value}
+                    type="button"
+                    onClick={() => set("hueShift", h.value)}
+                    className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all ${
+                      active
+                        ? "border-primary bg-primary/15 text-primary-glow shadow-glow"
+                        : "border-border/60 bg-background/40 hover:border-primary/40"
+                    }`}
+                  >
+                    {h.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              Ajusta a tonalidade da imagem inteira via filtro CSS.
+            </p>
+          </div>
+
           <div>
             <Label>Seu apelido</Label>
             <Input
