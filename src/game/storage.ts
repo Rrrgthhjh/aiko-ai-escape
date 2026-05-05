@@ -19,6 +19,10 @@ export function loadSave(): SaveState | null {
         personality: (c?.personality as string) || DEFAULT_CHARACTER.personality,
         playerPersonality:
           (c?.playerPersonality as string) || DEFAULT_CHARACTER.playerPersonality,
+        appearance:
+          (c?.appearance as SaveState["character"]["appearance"]) ?? DEFAULT_CHARACTER.appearance,
+        hueShift:
+          typeof c?.hueShift === "number" ? (c.hueShift as number) : DEFAULT_CHARACTER.hueShift,
       };
     }
     return parsed;
