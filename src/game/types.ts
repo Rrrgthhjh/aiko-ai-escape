@@ -4,6 +4,10 @@ export type Character = {
   personality: string;
   /** Personalidade/traços do jogador — usada pela IA para reagir a você de forma coerente. */
   playerPersonality?: string;
+  /** Variante visual do avatar (penteado OU roupa). Default: dress (long hair + purple dress). */
+  appearance?: AppearanceVariant;
+  /** Matiz CSS aplicada via filter:hue-rotate. 0 = imagem original. */
+  hueShift?: number;
   // Campos legados — mantidos opcionais para retrocompatibilidade de saves antigos
   skinColor?: string;
   hairColor?: string;
@@ -12,6 +16,16 @@ export type Character = {
   outfitColor?: string;
   outfitStyle?: OutfitStyle;
 };
+
+export type AppearanceVariant =
+  | "dress"        // padrão: cabelo longo + vestido roxo
+  | "hair-bob"
+  | "hair-short"
+  | "hair-twin"
+  | "hair-ponytail"
+  | "outfit-uniform"
+  | "outfit-hoodie"
+  | "outfit-yukata";
 
 export type HairStyle = "long" | "short" | "twin" | "bob" | "ponytail";
 export type OutfitStyle = "dress" | "uniform" | "hoodie" | "yukata";
@@ -60,4 +74,6 @@ export const DEFAULT_CHARACTER: Character = {
   playerName: "",
   personality: "Doce e atenciosa por fora, possessiva por dentro.",
   playerPersonality: "Curioso(a), cauteloso(a) e observador(a). Tenta entender antes de agir.",
+  appearance: "dress",
+  hueShift: 0,
 };
