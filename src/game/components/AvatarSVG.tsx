@@ -33,7 +33,6 @@ export default function AvatarSVG({
   style?: React.CSSProperties;
 }) {
   const variant: AppearanceVariant = character?.appearance ?? "dress";
-  const hue = character?.hueShift ?? 0;
   const src = VARIANT_SRC[variant] ?? portraitDress;
   return (
     <img
@@ -42,10 +41,7 @@ export default function AvatarSVG({
       loading="lazy"
       draggable={false}
       className={`object-contain object-bottom select-none pointer-events-none ${className ?? ""}`}
-      style={{
-        ...style,
-        filter: hue ? `hue-rotate(${hue}deg)` : undefined,
-      }}
+      style={style}
     />
   );
 }
