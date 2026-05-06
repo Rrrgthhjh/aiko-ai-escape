@@ -19,14 +19,6 @@ const APPEARANCE_OPTIONS: { value: AppearanceVariant; label: string }[] = [
   { value: "outfit-yukata", label: "Yukata floral" },
 ];
 
-const HUE_PRESETS: { label: string; value: number }[] = [
-  { label: "Original", value: 0 },
-  { label: "Rosa", value: 320 },
-  { label: "Âmbar", value: 30 },
-  { label: "Verde", value: 90 },
-  { label: "Azul", value: 200 },
-];
-
 export default function CharacterCreator({
   initial,
   onConfirm,
@@ -49,7 +41,7 @@ export default function CharacterCreator({
     playerName: c.playerName.trim() || "Você",
     playerPersonality: (c.playerPersonality ?? "").trim(),
     appearance: c.appearance ?? "dress",
-    hueShift: c.hueShift ?? 0,
+    hueShift: 0,
   };
 
   return (
@@ -61,7 +53,7 @@ export default function CharacterCreator({
       <p className="text-sm text-muted-foreground mb-6">
         Ela já existe — esperando você. Escolha um visual, defina <em>quem ela é</em> e <em>quem você é pra ela</em>.
         <span className="block mt-1 text-[11px] text-emerald-400/80">
-          Visual e cores: 0 créditos (imagens locais).
+          Visual: 0 créditos (imagens locais).
         </span>
       </p>
 
@@ -92,32 +84,6 @@ export default function CharacterCreator({
                 );
               })}
             </div>
-          </div>
-
-          <div>
-            <Label>Paleta de cor</Label>
-            <div className="flex flex-wrap gap-1.5 mt-1.5">
-              {HUE_PRESETS.map((h) => {
-                const active = (c.hueShift ?? 0) === h.value;
-                return (
-                  <button
-                    key={h.value}
-                    type="button"
-                    onClick={() => set("hueShift", h.value)}
-                    className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all ${
-                      active
-                        ? "border-primary bg-primary/15 text-primary-glow shadow-glow"
-                        : "border-border/60 bg-background/40 hover:border-primary/40"
-                    }`}
-                  >
-                    {h.label}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Ajusta a tonalidade da imagem inteira via filtro CSS.
-            </p>
           </div>
 
           <div>
