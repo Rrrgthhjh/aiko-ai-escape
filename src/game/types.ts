@@ -4,17 +4,19 @@ export type Character = {
   personality: string;
   /** Personalidade/traços do jogador — usada pela IA para reagir a você de forma coerente. */
   playerPersonality?: string;
-  /** Variante visual do avatar (penteado OU roupa). Default: dress (long hair + purple dress). */
+  /** Variante visual legada do avatar. Mantida só para migrar saves antigos. */
   appearance?: AppearanceVariant;
-  /** Matiz CSS aplicada via filter:hue-rotate. 0 = imagem original. */
+  /** Campo legado da antiga paleta por filtro CSS. */
   hueShift?: number;
+  /** Penteado selecionado no sistema atual. */
+  hairStyle?: HairStyle;
+  /** Roupa selecionada no sistema atual. */
+  outfitStyle?: OutfitStyle;
   // Campos legados — mantidos opcionais para retrocompatibilidade de saves antigos
   skinColor?: string;
   hairColor?: string;
-  hairStyle?: HairStyle;
   eyeColor?: string;
   outfitColor?: string;
-  outfitStyle?: OutfitStyle;
 };
 
 export type AppearanceVariant =
@@ -76,4 +78,6 @@ export const DEFAULT_CHARACTER: Character = {
   playerPersonality: "Curioso(a), cauteloso(a) e observador(a). Tenta entender antes de agir.",
   appearance: "dress",
   hueShift: 0,
+  hairStyle: "long",
+  outfitStyle: "dress",
 };
