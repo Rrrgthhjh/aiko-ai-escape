@@ -4,23 +4,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles } from "lucide-react";
-import type { Character, HairStyle, OutfitStyle } from "../types";
+import type { AppearanceVariant, Character } from "../types";
 import { DEFAULT_CHARACTER } from "../types";
 import AvatarSVG from "./AvatarSVG";
 
-const HAIR_OPTIONS: { value: HairStyle; label: string }[] = [
-  { value: "long", label: "Longo" },
-  { value: "bob", label: "Bob" },
-  { value: "short", label: "Curto" },
-  { value: "twin", label: "Maria-chiquinhas" },
-  { value: "ponytail", label: "Rabo de cavalo" },
-];
-
-const OUTFIT_OPTIONS: { value: OutfitStyle; label: string }[] = [
-  { value: "dress", label: "Vestido" },
-  { value: "uniform", label: "Uniforme escolar" },
-  { value: "hoodie", label: "Moletom oversized" },
-  { value: "yukata", label: "Yukata floral" },
+const APPEARANCE_OPTIONS: { value: AppearanceVariant; label: string }[] = [
+  { value: "dress", label: "Cabelo longo + vestido" },
+  { value: "hair-bob", label: "Cabelo bob" },
+  { value: "hair-short", label: "Cabelo curto" },
+  { value: "hair-twin", label: "Maria-chiquinhas" },
+  { value: "hair-ponytail", label: "Rabo de cavalo" },
+  { value: "outfit-uniform", label: "Uniforme escolar" },
+  { value: "outfit-hoodie", label: "Moletom oversized" },
+  { value: "outfit-yukata", label: "Yukata floral" },
 ];
 
 export default function CharacterCreator({
@@ -46,8 +42,6 @@ export default function CharacterCreator({
     playerPersonality: (c.playerPersonality ?? "").trim(),
     appearance: c.appearance ?? "dress",
     hueShift: 0,
-    hairStyle: c.hairStyle ?? "long",
-    outfitStyle: c.outfitStyle ?? "dress",
   };
 
   return (
@@ -70,38 +64,15 @@ export default function CharacterCreator({
 
         <div className="space-y-5">
           <div>
-            <Label>Cabelo</Label>
+            <Label>Visual</Label>
             <div className="grid grid-cols-2 gap-1.5 mt-1.5">
-              {HAIR_OPTIONS.map((opt) => {
-                const active = (c.hairStyle ?? "long") === opt.value;
+              {APPEARANCE_OPTIONS.map((opt) => {
+                const active = (c.appearance ?? "dress") === opt.value;
                 return (
                   <button
                     key={opt.value}
                     type="button"
-                    onClick={() => set("hairStyle", opt.value)}
-                    className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all text-left ${
-                      active
-                        ? "border-primary bg-primary/15 text-primary-glow shadow-glow"
-                        : "border-border/60 bg-background/40 hover:border-primary/40"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div>
-            <Label>Roupa</Label>
-            <div className="grid grid-cols-2 gap-1.5 mt-1.5">
-              {OUTFIT_OPTIONS.map((opt) => {
-                const active = (c.outfitStyle ?? "dress") === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => set("outfitStyle", opt.value)}
+                    onClick={() => set("appearance", opt.value)}
                     className={`text-xs px-2.5 py-1.5 rounded-lg border transition-all text-left ${
                       active
                         ? "border-primary bg-primary/15 text-primary-glow shadow-glow"
