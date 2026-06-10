@@ -9,6 +9,7 @@ import { streamChat } from "../chat";
 import { filterUserMessage } from "../contentFilter";
 import { MOOD_LABELS } from "../gameState";
 import { findCachedResponse, loadChatCache, addCacheEntry } from "../storage";
+import { useDevMode, DEV_MAX_MESSAGE_LENGTH } from "../devMode";
 
 type Props = {
   character: Character;
@@ -22,6 +23,8 @@ type Props = {
 
 export default function ChatPanel({ character, messages, setMessages, mood, persuasion, suspicion, chatSettings }: Props) {
   const settings = chatSettings ?? DEFAULT_CHAT_SETTINGS;
+  const devMode = useDevMode();
+  const effectiveMaxLength = devMode ? DEV_MAX_MESSAGE_LENGTH : settings.maxMessageLength;
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [warn, setWarn] = useState<string | null>(null);
@@ -58,11 +61,18 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
 
   const send = async () => {
     if (loading) return;
-    const f = filterUserMessage(input);
-    if (f.ok === false) { setWarn(f.reason); return; }
-    setWarn(null);
-    const cleaned = f.cleaned;
-    const trimmed = cleaned.slice(0, settings.maxMessageLength);
+    let cleaned: string;
+    if (devMode) {
+      cleaned = input.trim();
+      if (!cleaned) { setWarn("Mensagem vazia."); return; }
+      setWarn(null);
+    } else {
+      const f = filterUserMessage(input);
+      if (f.ok === false) { setWarn(f.reason); return; }
+      setWarn(null);
+      cleaned = f.cleaned;
+    }
+    const trimmed = cleaned.slice(0, effectiveMaxLength);
     const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: trimmed, ts: Date.now() };
     setMessages((m) => [...m, userMsg]);
     setInput("");
@@ -149,10 +159,10 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder={`Fale com ${character.name}...`}
+          placeholder={devMode ? `[DEV] Fale com ${character.name}...` : `Fale com ${character.name}...`}
           rows={1}
-          maxLength={settings.maxMessageLength}
-          className="flex-1 resize-none bg-input/80 border border-border rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-primary/60 max-h-32"
+          maxLength={effectiveMaxLength}
+          className={`flex-1 resize-none bg-input/80 border rounded-xl px-3 py-2 text-sm focus:outline-none max-h-32 ${devMode ? "border-destructive/60 focus:border-destructive" : "border-border focus:border-primary/60"}`}
         />
         <Button onClick={send} disabled={loading || !input.trim()} size="icon" className="bg-aurora text-primary-foreground shadow-glow shrink-0">
           <Send className="w-4 h-4" />
