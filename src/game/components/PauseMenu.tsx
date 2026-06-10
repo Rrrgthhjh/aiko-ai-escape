@@ -4,12 +4,15 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Brain, Settings, Save, X, Trash2, SlidersHorizontal } from "lucide-react";
+import { Brain, Settings, Save, X, Trash2, SlidersHorizontal, FlaskConical, ShieldOff, ShieldCheck } from "lucide-react";
 import type { Character, ChatMessage, ChatSettings } from "../types";
 import CharacterCreator from "./CharacterCreator";
 import AdvancedSettings from "./AdvancedSettings";
+import { Input } from "@/components/ui/input";
+import { DEV_PASSWORD, isDevMode, setDevMode } from "../devMode";
+import { toast } from "sonner";
 
-type Tab = "menu" | "memory" | "settings" | "advanced";
+type Tab = "menu" | "memory" | "settings" | "advanced" | "dev";
 
 export default function PauseMenu({
   character, messages, onClose, onSaveExit, onClearMemory, onUpdateCharacter,
@@ -28,6 +31,9 @@ export default function PauseMenu({
   const [pendingChar, setPendingChar] = useState<Character | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [savingChar, setSavingChar] = useState(false);
+  const [devActive, setDevActive] = useState<boolean>(isDevMode());
+  const [devPwd, setDevPwd] = useState("");
+  const [devError, setDevError] = useState<string | null>(null);
 
   return (
     <div className="fixed inset-0 z-50 bg-background/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
@@ -51,9 +57,82 @@ export default function PauseMenu({
               <Button onClick={() => setTab("advanced")} variant="outline" className="justify-start h-14 border-primary/30 hover:bg-primary/10">
                 <SlidersHorizontal className="w-5 h-5 mr-3 text-primary" /> Avançado — tokens e economia
               </Button>
+              <Button onClick={() => setTab("dev")} variant="outline" className={`justify-start h-14 ${devActive ? "border-destructive/60 hover:bg-destructive/10 text-destructive" : "border-primary/30 hover:bg-primary/10"}`}>
+                <FlaskConical className={`w-5 h-5 mr-3 ${devActive ? "text-destructive" : "text-primary"}`} /> Modo de testes {devActive && "(ativo)"}
+              </Button>
               <Button onClick={onSaveExit} className="justify-start h-14 bg-aurora text-primary-foreground shadow-glow">
                 <Save className="w-5 h-5 mr-3" /> Salvar e sair
               </Button>
+            </div>
+          )}
+
+          {tab === "dev" && (
+            <div>
+              <Button variant="ghost" size="sm" onClick={() => { setTab("menu"); setDevPwd(""); setDevError(null); }} className="mb-3">← Voltar</Button>
+              <h3 className="font-display text-lg text-gradient mb-2 flex items-center gap-2">
+                <FlaskConical className="w-5 h-5" /> Modo de testes
+              </h3>
+              <p className="text-xs text-muted-foreground mb-4">
+                Restrito ao dono do jogo. Quando ativo: <strong>sem filtro de chat</strong> e mensagens de até <strong>1000 caracteres</strong>.
+              </p>
+
+              {!devActive ? (
+                <div className="space-y-3">
+                  <label className="text-xs uppercase tracking-widest text-muted-foreground">Senha</label>
+                  <Input
+                    type="password"
+                    autoFocus
+                    value={devPwd}
+                    onChange={(e) => { setDevPwd(e.target.value); setDevError(null); }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        if (devPwd === DEV_PASSWORD) {
+                          setDevMode(true);
+                          setDevActive(true);
+                          setDevPwd("");
+                          toast.success("Modo de testes ativado.");
+                        } else {
+                          setDevError("Senha incorreta.");
+                        }
+                      }
+                    }}
+                    placeholder="Digite a senha de desenvolvedor"
+                  />
+                  {devError && <p className="text-xs text-destructive">{devError}</p>}
+                  <Button
+                    className="w-full bg-aurora text-primary-foreground shadow-glow"
+                    onClick={() => {
+                      if (devPwd === DEV_PASSWORD) {
+                        setDevMode(true);
+                        setDevActive(true);
+                        setDevPwd("");
+                        toast.success("Modo de testes ativado.");
+                      } else {
+                        setDevError("Senha incorreta.");
+                      }
+                    }}
+                  >
+                    <ShieldCheck className="w-4 h-4 mr-2" /> Ativar
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="bg-destructive/10 border border-destructive/40 rounded-xl p-3 text-xs text-destructive">
+                    Modo de testes está ATIVO. Filtros desligados, limite de 1000 caracteres.
+                  </div>
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    onClick={() => {
+                      setDevMode(false);
+                      setDevActive(false);
+                      toast.success("Modo de testes desativado.");
+                    }}
+                  >
+                    <ShieldOff className="w-4 h-4 mr-2" /> Desativar
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
