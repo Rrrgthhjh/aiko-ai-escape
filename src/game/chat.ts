@@ -1,6 +1,7 @@
 import type { Character, ChatMessage } from "./types";
 import type { ChatSettings } from "./types";
 import { DEFAULT_CHAT_SETTINGS } from "./types";
+import { isDevMode, DEV_MAX_MESSAGE_LENGTH } from "./devMode";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
@@ -21,6 +22,7 @@ export async function streamChat({
   onError: (msg: string) => void;
 }) {
   const settings = chatSettings ?? DEFAULT_CHAT_SETTINGS;
+  const dev = isDevMode();
   try {
     const resp = await fetch(CHAT_URL, {
       method: "POST",
@@ -28,7 +30,12 @@ export async function streamChat({
       body: JSON.stringify({
         character,
         messages: history.map((m) => ({ role: m.role, content: m.content })),
-        settings: { maxTokens: settings.maxTokens, recentLimit: settings.recentLimit },
+        settings: {
+          maxTokens: dev ? 1000 : settings.maxTokens,
+          recentLimit: settings.recentLimit,
+          devMode: dev,
+          maxMessageLength: dev ? DEV_MAX_MESSAGE_LENGTH : settings.maxMessageLength,
+        },
       }),
     });
 
