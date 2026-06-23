@@ -31,7 +31,7 @@ function makeMessages(n: number) {
   }));
 }
 
-async function call(body: unknown) {
+async function call(body: unknown): Promise<Captured> {
   captured = null;
   const req = new Request("http://x/", { method: "POST", body: JSON.stringify(body) });
   const res = await handler!(req);
