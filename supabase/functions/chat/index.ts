@@ -38,13 +38,17 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
+    const devMode = settings?.devMode === true;
     const RECENT_LIMIT = Math.min(Math.max(settings?.recentLimit ?? DEFAULT_RECENT_LIMIT, 2), 16);
-    const MAX_TOKENS = Math.min(Math.max(settings?.maxTokens ?? DEFAULT_MAX_TOKENS, 30), 250);
+    const MAX_TOKENS = devMode
+      ? Math.min(Math.max(settings?.maxTokens ?? 1000, 30), 2000)
+      : Math.min(Math.max(settings?.maxTokens ?? DEFAULT_MAX_TOKENS, 30), 250);
 
     const all = Array.isArray(messages) ? messages : [];
-    const recent = all.slice(-RECENT_LIMIT);
-    const older = all.slice(0, Math.max(0, all.length - RECENT_LIMIT));
-    const memory = summarizeOlder(older);
+    // No modo de testes: envia TODO o histórico (sem cortar / sem resumo).
+    const recent = devMode ? all : all.slice(-RECENT_LIMIT);
+    const older = devMode ? [] : all.slice(0, Math.max(0, all.length - RECENT_LIMIT));
+    const memory = devMode ? null : summarizeOlder(older);
 
     const name = (character?.name || "Aiko").slice(0, 30);
     const playerName = (character?.playerName || "ele").slice(0, 30);
