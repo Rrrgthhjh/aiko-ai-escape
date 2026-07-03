@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Eye, KeyRound, Pause, ChevronLeft, ChevronRight, Sparkles, EyeOff } from "lucide-react";
+import { Eye, KeyRound, Pause, ChevronLeft, ChevronRight, Sparkles, EyeOff, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Scene3D from "../components/Scene3D";
 import ChatPanel from "../components/ChatPanel";
@@ -7,6 +7,7 @@ import PauseMenu from "../components/PauseMenu";
 import RoomPicker from "../components/RoomPicker";
 import AvatarSVG from "../components/AvatarSVG";
 import CreditIndicator from "../components/CreditIndicator";
+import MoodOverlay from "../components/MoodOverlay";
 import type { SaveState, Character, ChatMessage, Mood, Room } from "../types";
 import { DEFAULT_CHAT_SETTINGS } from "../types";
 import type { ChatSettings } from "../types";
@@ -24,6 +25,7 @@ export default function Game({
   const [paused, setPaused] = useState(false);
   const [discoveredClues, setDiscoveredClues] = useState<string[]>(initial.discoveredClues ?? []);
   const [hudHidden, setHudHidden] = useState(false);
+  const [moodOverlayOn, setMoodOverlayOn] = useState(false);
   const [chatSettings, setChatSettings] = useState<ChatSettings>(initial.chatSettings ?? DEFAULT_CHAT_SETTINGS);
   const ROOM_ORDER: Room[] = ["sala", "cozinha", "banheiro", "quarto"];
   const roomIdx = ROOM_ORDER.indexOf(room);
@@ -143,6 +145,22 @@ export default function Game({
         {hudHidden ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
       </button>
 
+      {/* Toggle do overlay de emoção — visível sempre que o HUD estiver visível */}
+      {!hudHidden && (
+        <button
+          onClick={() => setMoodOverlayOn((v) => !v)}
+          aria-label={moodOverlayOn ? "Ocultar overlay de emoção" : "Mostrar overlay de emoção"}
+          title={moodOverlayOn ? "Ocultar overlay de emoção" : "Mostrar overlay de emoção"}
+          className={`fixed top-14 right-3 z-50 w-10 h-10 rounded-full border backdrop-blur-md flex items-center justify-center shadow-glow transition-all ${
+            moodOverlayOn
+              ? "bg-primary/30 border-primary text-primary-glow"
+              : "bg-card-soft/90 border-primary/60 text-primary-glow hover:bg-primary/20"
+          }`}
+        >
+          <Activity className="w-4 h-4" />
+        </button>
+      )}
+
       {/* Cena 3D + retrato sobreposto */}
       <div className="relative flex-1 min-h-0">
         <Scene3D room={room} clueFound={clueHere} mood={gameState.mood} />
@@ -183,6 +201,13 @@ export default function Game({
             </div>
           </div>
         </div>
+        {!hudHidden && moodOverlayOn && (
+          <MoodOverlay
+            mood={gameState.mood}
+            confidence={gameState.confidence}
+            triggers={gameState.triggers}
+          />
+        )}
         {!hudHidden && (
         <div className="absolute top-16 left-3 flex flex-col gap-2 z-20">
           <div className="bg-card-soft border border-border/60 rounded-lg px-2.5 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
