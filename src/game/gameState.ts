@@ -32,6 +32,19 @@ const sadWords = ["triste", "sozinh", "vazio", "chorar", "chorei", "solidão", "
 const surprisedWords = ["sério?", "sério!", "o quê", "o que?!", "não acredito", "impossível", "jura", "nossa", "uau", "meu deus"];
 const cryingWords = ["me machuca", "me odeia", "vai me deixar", "vai embora", "não me ama", "não me quer", "sou horrível", "sou péssim"];
 
+const MOOD_TRIGGERS: Record<Exclude<Mood, "calm" | "hopeful" | "soft" | "tense">, string[]> = {
+  shy: shyWords,
+  happy: happyWords,
+  sad: sadWords,
+  surprised: surprisedWords,
+  crying: cryingWords,
+  angry: angryWords,
+};
+
+function findTriggers(text: string, words: string[]): string[] {
+  return words.filter((w) => text.includes(w));
+}
+
 export function analyzeGameState(messages: ChatMessage[], discoveredCount: number) {
   const userText = messages.filter((m) => m.role === "user").map((m) => m.content.toLowerCase()).join(" ");
   const soft = softWords.reduce((n, w) => n + (userText.includes(w) ? 1 : 0), 0);
@@ -73,7 +86,35 @@ export function analyzeGameState(messages: ChatMessage[], discoveredCount: numbe
   else if (shy > 0) mood = "shy";
   else if (soft > 0) mood = "soft";
 
-  return { mood, persuasion, suspicion };
+  // Palavras que dispararam a mudança (baseado na última fala; fallback: histórico).
+  const triggerBank =
+    mood === "shy" ? shyWords :
+    mood === "happy" ? happyWords :
+    mood === "sad" ? sadWords :
+    mood === "surprised" ? surprisedWords :
+    mood === "crying" ? cryingWords :
+    mood === "angry" ? angryWords :
+    mood === "tense" ? tenseWords :
+    mood === "soft" ? softWords :
+    [];
+  let triggers = findTriggers(lastUser, triggerBank);
+  if (triggers.length === 0) triggers = findTriggers(userText, triggerBank).slice(-3);
+
+  // Confiança do detector: quão fortes são os sinais para esse humor.
+  const raw =
+    mood === "shy" ? shy * 30 :
+    mood === "happy" ? happy * 28 :
+    mood === "sad" ? sad * 28 :
+    mood === "surprised" ? surprised * 34 :
+    mood === "crying" ? crying * 40 + (suspicion > 60 ? 15 : 0) :
+    mood === "angry" ? angry * 32 + (suspicion >= 70 ? 20 : 0) :
+    mood === "tense" ? Math.max(0, suspicion - 30) * 1.4 :
+    mood === "soft" ? soft * 20 :
+    mood === "hopeful" ? Math.max(0, persuasion - 60) * 2 :
+    20;
+  const confidence = Math.max(10, Math.min(100, Math.round(raw + (triggers.length ? 20 : 0))));
+
+  return { mood, persuasion, suspicion, triggers, confidence };
 }
 
 export const MOOD_LABELS: Record<Mood, string> = {
