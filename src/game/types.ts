@@ -39,7 +39,17 @@ export type ChatMessage = {
 
 export type Room = "sala" | "cozinha" | "banheiro" | "quarto";
 
-export type Mood = "calm" | "soft" | "tense" | "angry" | "hopeful";
+export type Mood =
+  | "calm"
+  | "soft"
+  | "tense"
+  | "angry"
+  | "hopeful"
+  | "shy"
+  | "happy"
+  | "sad"
+  | "surprised"
+  | "crying";
 
 export type ChatPreset = "economic" | "normal";
 
