@@ -13,6 +13,7 @@ import moodSurprised from "@/assets/aiko-mood-surprised.png";
 import moodCrying from "@/assets/aiko-mood-crying.png";
 import moodAngry from "@/assets/aiko-mood-angry.png";
 import type { AppearanceVariant, Character, Mood } from "../types";
+import { useEffect, useRef, useState } from "react";
 
 const VARIANT_SRC: Record<AppearanceVariant, string> = {
   "dress": portraitDress,
@@ -38,6 +39,20 @@ const MOOD_SRC: Partial<Record<Mood, string>> = {
   angry: moodAngry,
 };
 
+/** Animação de gesto por humor — aplicada em um wrapper por cima do breathe/sway. */
+const GESTURE_CLASS: Record<Mood, string> = {
+  calm: "",
+  soft: "",
+  hopeful: "",
+  shy: "animate-gesture-shy-sway",
+  happy: "animate-gesture-bounce",
+  sad: "animate-gesture-lookaway",
+  surprised: "animate-gesture-bounce",
+  crying: "animate-gesture-tremble",
+  angry: "animate-gesture-shake",
+  tense: "animate-gesture-lookaway",
+};
+
 /**
  * Avatar da Aiko — 8 imagens foto-realistas geradas UMA VEZ (sem custo recorrente).
  * Cor da paleta é ajustada via CSS hue-rotate (0 créditos).
@@ -57,15 +72,43 @@ export default function AvatarSVG({
   const moodSrc = mood ? MOOD_SRC[mood] : undefined;
   // Retratos de emoção só sobrescrevem a variante padrão (mesma pose/roupa base).
   const src = moodSrc && variant === "dress" ? moodSrc : (VARIANT_SRC[variant] ?? portraitDress);
+
+  // Crossfade: mantém a imagem anterior por baixo enquanto a nova entra.
+  const [current, setCurrent] = useState(src);
+  const [previous, setPrevious] = useState<string | null>(null);
+  const prevRef = useRef(src);
+  useEffect(() => {
+    if (src === prevRef.current) return;
+    setPrevious(prevRef.current);
+    setCurrent(src);
+    prevRef.current = src;
+    const t = window.setTimeout(() => setPrevious(null), 600);
+    return () => window.clearTimeout(t);
+  }, [src]);
+
+  const gesture = mood ? GESTURE_CLASS[mood] : "";
+
   return (
-    <img
-      src={src}
-      alt="Aiko"
-      key={src}
-      loading="lazy"
-      draggable={false}
-      className={`object-contain object-bottom select-none pointer-events-none animate-fade-in ${className ?? ""}`}
-      style={style}
-    />
+    <div className={`relative h-full w-auto ${gesture}`}>
+      {previous && (
+        <img
+          src={previous}
+          alt=""
+          aria-hidden
+          draggable={false}
+          className={`absolute inset-0 h-full w-auto object-contain object-bottom select-none pointer-events-none opacity-0 transition-opacity duration-500 ${className ?? ""}`}
+          style={style}
+        />
+      )}
+      <img
+        src={current}
+        alt="Aiko"
+        key={current}
+        loading="lazy"
+        draggable={false}
+        className={`relative h-full w-auto object-contain object-bottom select-none pointer-events-none animate-mood-fade ${className ?? ""}`}
+        style={style}
+      />
+    </div>
   );
 }
