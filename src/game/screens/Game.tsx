@@ -135,7 +135,7 @@ export default function Game({
 
       {/* Cena 3D + retrato sobreposto */}
       <div className="relative flex-1 min-h-0">
-        <Scene3D room={room} clueFound={false} mood={gameState.mood} />
+        <Scene3D room={room} mood={gameState.mood} />
         {/* Overlay de transição entre cômodos */}
         <div
           className={`pointer-events-none absolute inset-0 z-30 bg-background transition-opacity duration-300 ${
