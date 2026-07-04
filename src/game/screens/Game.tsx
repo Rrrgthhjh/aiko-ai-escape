@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Eye, KeyRound, Pause, ChevronLeft, ChevronRight, Sparkles, EyeOff, Activity } from "lucide-react";
+import { Eye, Pause, ChevronLeft, ChevronRight, EyeOff, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Scene3D from "../components/Scene3D";
 import ChatPanel from "../components/ChatPanel";
@@ -13,7 +13,7 @@ import { DEFAULT_CHAT_SETTINGS } from "../types";
 import type { ChatSettings } from "../types";
 import { writeSave } from "../storage";
 import { toast } from "sonner";
-import { analyzeGameState, MOOD_LABELS, ROOM_CLUES } from "../gameState";
+import { analyzeGameState, MOOD_LABELS } from "../gameState";
 import { playRoomAmbience, stopAmbience } from "../audio";
 
 export default function Game({
@@ -23,7 +23,6 @@ export default function Game({
   const [messages, _setMessages] = useState<ChatMessage[]>(initial.messages);
   const [room, setRoom] = useState<Room>("sala");
   const [paused, setPaused] = useState(false);
-  const [discoveredClues, setDiscoveredClues] = useState<string[]>(initial.discoveredClues ?? []);
   const [hudHidden, setHudHidden] = useState(false);
   const [moodOverlayOn, setMoodOverlayOn] = useState(false);
   const [chatSettings, setChatSettings] = useState<ChatSettings>(initial.chatSettings ?? DEFAULT_CHAT_SETTINGS);
@@ -40,8 +39,7 @@ export default function Game({
   };
   const goPrev = () => changeRoom(ROOM_ORDER[(roomIdx - 1 + ROOM_ORDER.length) % ROOM_ORDER.length]);
   const goNext = () => changeRoom(ROOM_ORDER[(roomIdx + 1) % ROOM_ORDER.length]);
-  const gameState = useMemo(() => analyzeGameState(messages, discoveredClues.length), [messages, discoveredClues.length]);
-  const clueHere = discoveredClues.includes(ROOM_CLUES[room].id);
+  const gameState = useMemo(() => analyzeGameState(messages, 0), [messages]);
   const expressionStyles: Record<Mood, string> = {
     calm: "saturate-100 contrast-100",
     soft: "saturate-125 brightness-110",
@@ -59,16 +57,16 @@ export default function Game({
   const setMessages = (updater: (m: ChatMessage[]) => ChatMessage[]) => {
     _setMessages((prev) => {
       const next = updater(prev);
-      writeSave({ character, portrait: null, messages: next, warningSeen: true, discoveredClues, chatSettings });
+      writeSave({ character, portrait: null, messages: next, warningSeen: true, chatSettings });
       return next;
     });
   };
 
   // persiste personagem
   useEffect(() => {
-    writeSave({ character, portrait: null, messages, warningSeen: true, discoveredClues, chatSettings });
+    writeSave({ character, portrait: null, messages, warningSeen: true, chatSettings });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [character, discoveredClues, chatSettings]);
+  }, [character, chatSettings]);
 
   // Ambiente sonoro por cômodo
   useEffect(() => {
@@ -79,42 +77,16 @@ export default function Game({
 
   const handleClearMemory = () => {
     _setMessages(() => {
-      writeSave({ character, portrait: null, messages: [], warningSeen: true, discoveredClues });
+      writeSave({ character, portrait: null, messages: [], warningSeen: true, chatSettings });
       return [];
     });
     toast.success(`${character.name} esqueceu tudo.`);
   };
 
-  const handleInspectClue = () => {
-    const clue = ROOM_CLUES[room];
-    if (discoveredClues.includes(clue.id)) return;
-    const nextClues = [...discoveredClues, clue.id];
-    const clueMsg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content: `*Você examina ${clue.label}.* ${clue.reveal}`, ts: Date.now() };
-    setDiscoveredClues(nextClues);
-    _setMessages((prev) => {
-      const next = [...prev, clueMsg];
-      writeSave({ character, portrait: null, messages: next, warningSeen: true, discoveredClues: nextClues });
-      return next;
-    });
-  };
-
-  const handleTryDoor = () => {
-    const success = discoveredClues.length >= 4 && gameState.persuasion >= 75;
-    const content = success
-      ? `*${character.name} olha para a chave na sua mão por um tempo longo demais.* "...vai. Antes que eu mude de ideia." A porta destranca.`
-      : `A fechadura resiste. Você precisa entender melhor a casa — e tocar alguma parte humana em ${character.name}.`;
-    const doorMsg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content, ts: Date.now() };
-    _setMessages((prev) => {
-      const next = [...prev, doorMsg];
-      writeSave({ character, portrait: null, messages: next, warningSeen: true, discoveredClues });
-      return next;
-    });
-  };
-
   const handleUpdateCharacter = async (c: Character) => {
     setCharacter(c);
     _setMessages(() => {
-      writeSave({ character: c, portrait: null, messages: [], warningSeen: true, discoveredClues });
+      writeSave({ character: c, portrait: null, messages: [], warningSeen: true, chatSettings });
       return [];
     });
     toast.success("A IA mudou. A memória foi apagada.");
@@ -163,7 +135,7 @@ export default function Game({
 
       {/* Cena 3D + retrato sobreposto */}
       <div className="relative flex-1 min-h-0">
-        <Scene3D room={room} clueFound={clueHere} mood={gameState.mood} />
+        <Scene3D room={room} mood={gameState.mood} />
         {/* Overlay de transição entre cômodos */}
         <div
           className={`pointer-events-none absolute inset-0 z-30 bg-background transition-opacity duration-300 ${
@@ -213,17 +185,6 @@ export default function Game({
           <div className="bg-card-soft border border-border/60 rounded-lg px-2.5 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
             {room} · {MOOD_LABELS[gameState.mood]}
           </div>
-          {!clueHere && (
-            <div className="flex items-center gap-1.5 bg-accent/20 border border-accent/50 rounded-lg px-2 py-1 text-[10px] uppercase tracking-widest text-accent-foreground animate-pulse">
-              <Sparkles className="w-3 h-3" /> pista neste cômodo
-            </div>
-          )}
-          <Button onClick={handleInspectClue} disabled={clueHere} size="sm" variant="outline" className="justify-start bg-card-soft border-primary/40 text-xs">
-            <Eye className="w-3.5 h-3.5 mr-2" /> {clueHere ? "pista encontrada" : `examinar ${ROOM_CLUES[room].label}`}
-          </Button>
-          <Button onClick={handleTryDoor} size="sm" variant="outline" className="justify-start bg-card-soft border-accent/40 text-xs">
-            <KeyRound className="w-3.5 h-3.5 mr-2" /> tentar a porta ({discoveredClues.length}/4)
-          </Button>
         </div>
         )}
       </div>
@@ -240,13 +201,13 @@ export default function Game({
           character={character}
           messages={messages}
           onClose={() => setPaused(false)}
-          onSaveExit={() => { writeSave({ character, portrait: null, messages, warningSeen: true, discoveredClues, chatSettings }); onExit(); }}
+          onSaveExit={() => { writeSave({ character, portrait: null, messages, warningSeen: true, chatSettings }); onExit(); }}
           onClearMemory={handleClearMemory}
           onUpdateCharacter={handleUpdateCharacter}
           chatSettings={chatSettings}
           onUpdateChatSettings={(s) => {
             setChatSettings(s);
-            writeSave({ character, portrait: null, messages, warningSeen: true, discoveredClues, chatSettings: s });
+            writeSave({ character, portrait: null, messages, warningSeen: true, chatSettings: s });
             toast.success("Configurações atualizadas!");
           }}
         />
