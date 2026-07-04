@@ -3,7 +3,7 @@ import { useRef, useMemo } from "react";
 import * as THREE from "three";
 import type { Mood, Room as RoomName } from "../types";
 
-type Props = { room: RoomName; clueFound?: boolean; mood?: Mood };
+type Props = { room: RoomName; mood?: Mood };
 
 const ROOM_PALETTES: Record<RoomName, { wall: string; floor: string; accent: string }> = {
   sala: { wall: "#7a5a8a", floor: "#3d2c46", accent: "#ff8fd0" },
@@ -37,14 +37,12 @@ function Particles() {
   );
 }
 
-function Room({ palette, clueFound = false, mood = "calm" }: { palette: { wall: string; floor: string; accent: string }; clueFound?: boolean; mood?: Mood }) {
+function Room({ palette, mood = "calm" }: { palette: { wall: string; floor: string; accent: string }; mood?: Mood }) {
   const lightRef = useRef<THREE.PointLight>(null);
-  const clueRef = useRef<THREE.Mesh>(null);
   useFrame((s) => {
     if (lightRef.current) {
       lightRef.current.intensity = (mood === "angry" ? 2.6 : 2.0) + Math.sin(s.clock.elapsedTime * (mood === "tense" ? 5 : 2)) * 0.2;
     }
-    if (clueRef.current) clueRef.current.rotation.y += 0.015;
   });
   return (
     <group>
@@ -85,12 +83,6 @@ function Room({ palette, clueFound = false, mood = "calm" }: { palette: { wall: 
         <boxGeometry args={[1, 0.6, 1]} />
         <meshStandardMaterial color="#1a1020" roughness={0.5} />
       </mesh>
-      {!clueFound && (
-        <mesh ref={clueRef} position={[-2, 0.05, -3.45]} castShadow>
-          <octahedronGeometry args={[0.18, 0]} />
-          <meshStandardMaterial color={palette.accent} emissive={palette.accent} emissiveIntensity={1.2} roughness={0.25} />
-        </mesh>
-      )}
       <Particles />
     </group>
   );
@@ -106,7 +98,7 @@ function CameraRig() {
   return null;
 }
 
-export default function Scene3D({ room, clueFound, mood }: Props) {
+export default function Scene3D({ room, mood }: Props) {
   const palette = ROOM_PALETTES[room];
   return (
     <Canvas
@@ -121,7 +113,7 @@ export default function Scene3D({ room, clueFound, mood }: Props) {
     >
       <fog attach="fog" args={[palette.floor, 8, 20]} />
       <CameraRig />
-      <Room palette={palette} clueFound={clueFound} mood={mood} />
+      <Room palette={palette} mood={mood} />
     </Canvas>
   );
 }
