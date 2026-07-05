@@ -14,6 +14,7 @@ import type { ChatSettings } from "../types";
 import { writeSave } from "../storage";
 import { toast } from "sonner";
 import { analyzeGameState, MOOD_LABELS } from "../gameState";
+import { extractActions, detectRoomFromActions } from "../actionParser";
 import { playRoomAmbience, stopAmbience } from "../audio";
 
 export default function Game({
@@ -74,6 +75,18 @@ export default function Game({
     return () => { /* mantido entre trocas */ };
   }, [room]);
   useEffect(() => () => stopAmbience(), []);
+
+  // Autorizador de troca de cômodo: só troca se o cômodo aparecer DENTRO de *asteriscos*
+  // (isto é, como AÇÃO da IA ou do jogador — não apenas citado em fala).
+  useEffect(() => {
+    if (messages.length === 0) return;
+    const last = messages[messages.length - 1];
+    const target = detectRoomFromActions(extractActions(last.content));
+    if (target && target !== room && !transitioning) {
+      changeRoom(target);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
 
   const handleClearMemory = () => {
     _setMessages(() => {
