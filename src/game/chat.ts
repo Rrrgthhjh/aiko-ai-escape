@@ -2,6 +2,7 @@ import type { Character, ChatMessage } from "./types";
 import type { ChatSettings } from "./types";
 import { DEFAULT_CHAT_SETTINGS } from "./types";
 import { isDevMode, DEV_MAX_MESSAGE_LENGTH } from "./devMode";
+import { detectLanguage } from "./actionParser";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
@@ -23,6 +24,9 @@ export async function streamChat({
 }) {
   const settings = chatSettings ?? DEFAULT_CHAT_SETTINGS;
   const dev = isDevMode();
+  // Detecta o idioma pela última mensagem do jogador (com fallback ao histórico).
+  const lastUser = [...history].reverse().find((m) => m.role === "user")?.content ?? "";
+  const language = detectLanguage(lastUser || history.map((m) => m.content).join(" "));
   try {
     const resp = await fetch(CHAT_URL, {
       method: "POST",
@@ -35,6 +39,7 @@ export async function streamChat({
           recentLimit: settings.recentLimit,
           devMode: dev,
           maxMessageLength: dev ? DEV_MAX_MESSAGE_LENGTH : settings.maxMessageLength,
+          language,
         },
       }),
     });
