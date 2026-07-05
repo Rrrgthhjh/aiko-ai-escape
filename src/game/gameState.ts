@@ -1,4 +1,5 @@
 import type { ChatMessage, Mood, Room } from "./types";
+import { extractActions, detectMoodFromActions } from "./actionParser";
 
 export const ROOM_CLUES: Record<Room, { id: string; label: string; reveal: string }> = {
   sala: {
@@ -67,6 +68,26 @@ export function analyzeGameState(messages: ChatMessage[], discoveredCount: numbe
 
   const persuasion = Math.max(0, Math.min(100, 12 + turns * 4 + soft * 9 + discoveredCount * 12 - angry * 12));
   const suspicion = Math.max(0, Math.min(100, 18 + tense * 10 + angry * 18 + discoveredCount * 8 - soft * 4));
+
+  // ————————————————————————————————————————————
+  // Prioridade #1: emoção sinalizada por AÇÃO (*...*)
+  // Lê as ações da última mensagem da IA e do jogador.
+  // ————————————————————————————————————————————
+  const lastAiContent = [...messages].reverse().find((m) => m.role === "assistant")?.content ?? "";
+  const lastUserContent = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
+  const actionMood = detectMoodFromActions([
+    ...extractActions(lastAiContent),
+    ...extractActions(lastUserContent),
+  ]);
+  if (actionMood) {
+    return {
+      mood: actionMood.mood,
+      persuasion,
+      suspicion,
+      triggers: [actionMood.trigger],
+      confidence: 95,
+    };
+  }
 
   let mood: Mood = "calm";
   // Reações imediatas à última fala têm prioridade
