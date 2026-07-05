@@ -34,30 +34,8 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Mensagem inicial dela quando ainda não há histórico
-  useEffect(() => {
-    if (messages.length === 0 && !loading) {
-      setLoading(true);
-      const id = crypto.randomUUID();
-      setMessages((m) => [...m, { id, role: "assistant", content: "", ts: Date.now() }]);
-      let acc = "";
-      streamChat({
-        history: [{ id: "seed", role: "user", content: "*acabei de acordar e olho ao redor, confuso*", ts: Date.now() }],
-        character,
-        chatSettings: settings,
-        onDelta: (c) => {
-          acc += c;
-          setMessages((m) => m.map((x) => (x.id === id ? { ...x, content: acc } : x)));
-        },
-        onDone: () => setLoading(false),
-        onError: (msg) => {
-          setMessages((m) => m.map((x) => (x.id === id ? { ...x, content: `*silêncio incômodo* (${msg})` } : x)));
-          setLoading(false);
-        },
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Sem saudação automática: a IA só responde após o jogador enviar a primeira mensagem.
+  // Isso garante que o idioma da resposta seja detectado pela fala do jogador.
 
   const send = async () => {
     if (loading) return;
