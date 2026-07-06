@@ -28,31 +28,84 @@ export function detectRoomFromActions(actions: string[]): Room | null {
 }
 
 /** Palavras-chave de emoção dentro de ações (*...*). */
-const MOOD_ACTION_KEYWORDS: Partial<Record<Mood, string[]>> = {
-  shy: ["cora", "coro", "blush", "envergonh", "ruboriz", "bochechas vermelhas", "olhar tímido", "tímida"],
-  happy: ["sorri", "gargalha", "risadinha", "smiles", "laughs", "sonrí"],
-  sad: ["suspira triste", "olha para baixo", "lágrima escorre", "sighs sadly", "cabisbaix"],
-  crying: ["chora", "soluç", "lágrimas escorrem", "cries", "sobs"],
-  angry: ["grita", "cerra os punhos", "range os dentes", "bate", "shouts", "glares", "franze o cenho"],
-  surprised: ["arregala os olhos", "boquiaberta", "engasga", "gasps", "eyes widen", "recua surpres"],
-  tense: ["se afasta", "recua", "tensa", "aperta os punhos", "morde o lábio"],
-  soft: ["acaricia", "abraça", "sorri suavemente", "encosta a mão"],
-  hopeful: ["olha esperançosa", "respira aliviada"],
+// Cada mood tem uma lista de gatilhos, com peso opcional. Frases mais específicas
+// (multi-palavra) ganham peso maior para vencer palavras genéricas como "sorri".
+const MOOD_ACTION_KEYWORDS: Partial<Record<Mood, Array<[string, number?]>>> = {
+  shy: [
+    ["cora levemente", 5], ["cora um pouco", 5], ["cora", 4], ["coro", 4],
+    ["blush", 4], ["blushes", 5], ["blushing", 5],
+    ["envergonh", 4], ["ruboriz", 5], ["fica vermelha", 5], ["fica ruborizada", 5],
+    ["bochechas vermelhas", 5], ["bochechas coram", 5], ["bochechas rosadas", 4],
+    ["olhar tímido", 4], ["olha tímida", 4], ["tímida", 3], ["tímido", 3],
+    ["desvia o olhar envergonhada", 6], ["abaixa o olhar envergonhada", 6],
+    ["sorri timidamente", 6], ["sorri envergonhada", 6], ["sorriso tímido", 6],
+    ["gagueja", 4], ["gaguejando", 4], ["morde o lábio envergonhada", 6],
+    ["esconde o rosto", 5], ["se esconde atrás", 4],
+  ],
+  happy: [
+    ["gargalha", 5], ["gargalhada", 5], ["risadinha", 4], ["ri alto", 5],
+    ["ri feliz", 5], ["sorri largo", 5], ["sorri feliz", 5], ["sorri animada", 5],
+    ["sorri radiante", 5], ["laughs", 4], ["grins", 4], ["beams", 4],
+    ["bate palmas", 4], ["pula de alegria", 5], ["olhos brilham de alegria", 5],
+    ["sorri", 2], ["smiles", 2], ["sonrí", 2],
+  ],
+  sad: [
+    ["suspira triste", 5], ["olha para baixo triste", 5], ["cabisbaix", 4],
+    ["lágrima escorre", 5], ["olhos marejados", 5], ["sighs sadly", 4],
+    ["olha para baixo", 3], ["encolhe os ombros triste", 5],
+  ],
+  crying: [
+    ["chora baixinho", 6], ["chora", 5], ["soluç", 5], ["cai em prantos", 6],
+    ["lágrimas escorrem", 6], ["cries", 4], ["sobs", 5], ["chorando", 5],
+  ],
+  angry: [
+    ["grita com raiva", 6], ["grita", 4], ["cerra os punhos", 5],
+    ["range os dentes", 5], ["bate na parede", 5], ["bate a mão", 4],
+    ["shouts", 4], ["glares", 4], ["franze o cenho", 4], ["olhar furioso", 5],
+    ["olha com raiva", 5],
+  ],
+  surprised: [
+    ["arregala os olhos", 5], ["boquiaberta", 5], ["engasga", 4],
+    ["gasps", 4], ["eyes widen", 4], ["recua surpres", 5],
+    ["dá um pulo de susto", 5], ["fica sem palavras surpres", 5],
+  ],
+  tense: [
+    ["se afasta tensa", 5], ["recua um passo", 4], ["fica tensa", 5],
+    ["aperta os punhos", 3], ["morde o lábio nervosa", 5], ["prende a respiração", 4],
+  ],
+  soft: [
+    ["acaricia", 4], ["abraça", 4], ["sorri suavemente", 4],
+    ["encosta a mão", 3], ["fala baixinho", 3], ["olha carinhosa", 4],
+  ],
+  hopeful: [
+    ["olha esperançosa", 5], ["respira aliviada", 5], ["sorri esperançosa", 5],
+  ],
 };
 
 /**
  * "Autorizador" de troca de emoção pelas ações:
- * lê apenas o que está dentro de *asteriscos*.
+ * pontua todas as ações e escolhe o humor com maior soma de pesos.
+ * Frases mais específicas (ex.: "sorri timidamente") vencem palavras genéricas ("sorri").
  */
 export function detectMoodFromActions(actions: string[]): { mood: Mood; trigger: string } | null {
-  for (const a of actions) {
-    for (const mood of Object.keys(MOOD_ACTION_KEYWORDS) as Mood[]) {
-      const kws = MOOD_ACTION_KEYWORDS[mood]!;
-      const hit = kws.find((k) => a.includes(k));
-      if (hit) return { mood, trigger: hit };
+  if (!actions.length) return null;
+  const scores: Partial<Record<Mood, number>> = {};
+  const bestTrigger: Partial<Record<Mood, { kw: string; weight: number }>> = {};
+  const joined = actions.join(" | ");
+  for (const mood of Object.keys(MOOD_ACTION_KEYWORDS) as Mood[]) {
+    const kws = MOOD_ACTION_KEYWORDS[mood]!;
+    for (const [kw, w = 3] of kws) {
+      if (!joined.includes(kw)) continue;
+      scores[mood] = (scores[mood] ?? 0) + w;
+      const prev = bestTrigger[mood];
+      if (!prev || w > prev.weight) bestTrigger[mood] = { kw, weight: w };
     }
   }
-  return null;
+  const entries = Object.entries(scores) as Array<[Mood, number]>;
+  if (!entries.length) return null;
+  entries.sort((a, b) => b[1] - a[1]);
+  const [mood] = entries[0];
+  return { mood, trigger: bestTrigger[mood]?.kw ?? mood };
 }
 
 const LANGUAGE_LABELS = {
