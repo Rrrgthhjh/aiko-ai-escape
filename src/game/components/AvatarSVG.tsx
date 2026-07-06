@@ -89,7 +89,7 @@ export default function AvatarSVG({
   const gesture = mood ? GESTURE_CLASS[mood] : "";
 
   return (
-    <div className={`relative h-full w-auto ${gesture}`}>
+    <div key={gesture || "calm"} className={`relative h-full w-auto ${gesture}`}>
       {previous && (
         <img
           src={previous}

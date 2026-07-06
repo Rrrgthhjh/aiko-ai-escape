@@ -13,20 +13,20 @@ describe("AvatarSVG", () => {
     const { container, rerender } = render(
       <AvatarSVG character={DEFAULT_CHARACTER} mood="calm" />,
     );
-    const wrapper = container.firstElementChild as HTMLElement;
-    expect(wrapper.className).not.toMatch(/animate-gesture-/);
+    const wrapperClass = () => (container.firstElementChild as HTMLElement).className;
+    expect(wrapperClass()).not.toMatch(/animate-gesture-/);
 
     rerender(<AvatarSVG character={DEFAULT_CHARACTER} mood="shy" />);
-    expect(wrapper.className).toMatch(/animate-gesture-shy-sway/);
+    expect(wrapperClass()).toMatch(/animate-gesture-shy-sway/);
 
     rerender(<AvatarSVG character={DEFAULT_CHARACTER} mood="angry" />);
-    expect(wrapper.className).toMatch(/animate-gesture-shake/);
+    expect(wrapperClass()).toMatch(/animate-gesture-shake/);
 
     rerender(<AvatarSVG character={DEFAULT_CHARACTER} mood="crying" />);
-    expect(wrapper.className).toMatch(/animate-gesture-tremble/);
+    expect(wrapperClass()).toMatch(/animate-gesture-tremble/);
 
     rerender(<AvatarSVG character={DEFAULT_CHARACTER} mood="happy" />);
-    expect(wrapper.className).toMatch(/animate-gesture-bounce/);
+    expect(wrapperClass()).toMatch(/animate-gesture-bounce/);
   });
 
   it("faz crossfade: mantém imagem anterior visível ao trocar de humor e remove após 600ms", () => {
