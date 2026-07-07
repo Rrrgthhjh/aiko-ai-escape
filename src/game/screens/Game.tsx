@@ -52,6 +52,10 @@ export default function Game({
     sad: "saturate-75 brightness-90",
     surprised: "saturate-110 brightness-110 contrast-110",
     crying: "saturate-90 brightness-95 hue-rotate-[-8deg]",
+    blush: "saturate-150 brightness-110 drop-shadow-[0_0_26px_hsl(var(--primary)/0.55)]",
+    flirty: "saturate-125 brightness-110 contrast-110 drop-shadow-[0_0_22px_hsl(var(--accent)/0.55)]",
+    scared: "saturate-75 brightness-90 contrast-125 hue-rotate-[-15deg]",
+    sleepy: "saturate-90 brightness-95 contrast-90",
   };
 
   // wrapper que persiste sempre
@@ -180,6 +184,7 @@ export default function Game({
               <AvatarSVG
                 character={character}
                 mood={gameState.mood}
+                secondaryMood={gameState.secondaryMood}
                 className={`h-full w-auto select-none transition-all duration-700 animate-char-blink ${expressionStyles[gameState.mood]}`}
                 style={{ filter: "drop-shadow(0 18px 32px hsl(var(--primary) / 0.45))" }}
               />

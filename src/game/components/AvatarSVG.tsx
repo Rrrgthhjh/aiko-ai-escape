@@ -12,6 +12,10 @@ import moodSad from "@/assets/aiko-mood-sad.png";
 import moodSurprised from "@/assets/aiko-mood-surprised.png";
 import moodCrying from "@/assets/aiko-mood-crying.png";
 import moodAngry from "@/assets/aiko-mood-angry.png";
+import moodBlush from "@/assets/aiko-mood-blush.png";
+import moodFlirty from "@/assets/aiko-mood-flirty.png";
+import moodScared from "@/assets/aiko-mood-scared.png";
+import moodSleepy from "@/assets/aiko-mood-sleepy.png";
 import type { AppearanceVariant, Character, Mood } from "../types";
 import { useEffect, useRef, useState } from "react";
 
@@ -37,6 +41,10 @@ const MOOD_SRC: Partial<Record<Mood, string>> = {
   surprised: moodSurprised,
   crying: moodCrying,
   angry: moodAngry,
+  blush: moodBlush,
+  flirty: moodFlirty,
+  scared: moodScared,
+  sleepy: moodSleepy,
 };
 
 /** Animação de gesto por humor — aplicada em um wrapper por cima do breathe/sway. */
@@ -51,6 +59,10 @@ const GESTURE_CLASS: Record<Mood, string> = {
   crying: "animate-gesture-tremble",
   angry: "animate-gesture-shake",
   tense: "animate-gesture-lookaway",
+  blush: "animate-gesture-shy-sway",
+  flirty: "animate-gesture-shy-sway",
+  scared: "animate-gesture-tremble",
+  sleepy: "animate-gesture-nod",
 };
 
 /**
@@ -60,11 +72,13 @@ const GESTURE_CLASS: Record<Mood, string> = {
 export default function AvatarSVG({
   character,
   mood,
+  secondaryMood,
   className,
   style,
 }: {
   character?: Character;
   mood?: Mood;
+  secondaryMood?: Mood;
   className?: string;
   style?: React.CSSProperties;
 }) {
@@ -72,6 +86,8 @@ export default function AvatarSVG({
   const moodSrc = mood ? MOOD_SRC[mood] : undefined;
   // Retratos de emoção só sobrescrevem a variante padrão (mesma pose/roupa base).
   const src = moodSrc && variant === "dress" ? moodSrc : (VARIANT_SRC[variant] ?? portraitDress);
+  const secondarySrc =
+    secondaryMood && variant === "dress" ? MOOD_SRC[secondaryMood] : undefined;
 
   // Crossfade: mantém a imagem anterior por baixo enquanto a nova entra.
   const [current, setCurrent] = useState(src);
@@ -109,6 +125,16 @@ export default function AvatarSVG({
         className={`relative h-full w-auto object-contain object-bottom select-none pointer-events-none animate-mood-fade ${className ?? ""}`}
         style={style}
       />
+      {secondarySrc && secondarySrc !== current && (
+        <img
+          src={secondarySrc}
+          alt=""
+          aria-hidden
+          draggable={false}
+          className={`absolute inset-0 h-full w-auto object-contain object-bottom select-none pointer-events-none mix-blend-screen opacity-30 transition-opacity duration-500 ${className ?? ""}`}
+          style={style}
+        />
+      )}
     </div>
   );
 }
