@@ -12,6 +12,10 @@ import moodSad from "@/assets/aiko-mood-sad.png";
 import moodSurprised from "@/assets/aiko-mood-surprised.png";
 import moodCrying from "@/assets/aiko-mood-crying.png";
 import moodAngry from "@/assets/aiko-mood-angry.png";
+import moodBlush from "@/assets/aiko-mood-blush.png";
+import moodFlirty from "@/assets/aiko-mood-flirty.png";
+import moodScared from "@/assets/aiko-mood-scared.png";
+import moodSleepy from "@/assets/aiko-mood-sleepy.png";
 
 export const AVATAR_ASSETS: string[] = [
   portraitDress,
@@ -28,6 +32,10 @@ export const AVATAR_ASSETS: string[] = [
   moodSurprised,
   moodCrying,
   moodAngry,
+  moodBlush,
+  moodFlirty,
+  moodScared,
+  moodSleepy,
 ];
 
 let started = false;

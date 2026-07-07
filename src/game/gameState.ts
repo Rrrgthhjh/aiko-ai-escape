@@ -32,6 +32,10 @@ const happyWords = ["haha", "kkkk", "rsrs", "engraçad", "brincadeira", "feliz",
 const sadWords = ["triste", "sozinh", "vazio", "chorar", "chorei", "solidão", "abandon", "perdi", "morreu", "saudade"];
 const surprisedWords = ["sério?", "sério!", "o quê", "o que?!", "não acredito", "impossível", "jura", "nossa", "uau", "meu deus"];
 const cryingWords = ["me machuca", "me odeia", "vai me deixar", "vai embora", "não me ama", "não me quer", "sou horrível", "sou péssim"];
+const blushWords = ["me deixa vermelha", "cora forte", "que vergonha", "fiquei sem graça", "para com isso", "não fala assim", "que fofura"];
+const flirtyWords = ["gostosa", "vem cá", "vem aqui", "que tal", "me beija", "brincadeira safada", "que provocante", "sedutora", "malandra"];
+const scaredWords = ["me machucar", "vai me matar", "medo de você", "estou com medo", "não chega perto", "me solta", "socorro", "afasta"];
+const sleepyWords = ["boa noite", "estou com sono", "que sono", "cansada", "vamos dormir", "durma", "vamos deitar", "cochilar"];
 
 const MOOD_TRIGGERS: Record<Exclude<Mood, "calm" | "hopeful" | "soft" | "tense">, string[]> = {
   shy: shyWords,
@@ -40,6 +44,10 @@ const MOOD_TRIGGERS: Record<Exclude<Mood, "calm" | "hopeful" | "soft" | "tense">
   surprised: surprisedWords,
   crying: cryingWords,
   angry: angryWords,
+  blush: blushWords,
+  flirty: flirtyWords,
+  scared: scaredWords,
+  sleepy: sleepyWords,
 };
 
 function findTriggers(text: string, words: string[]): string[] {
@@ -56,6 +64,10 @@ export function analyzeGameState(messages: ChatMessage[], discoveredCount: numbe
   const sad = sadWords.reduce((n, w) => n + (userText.includes(w) ? 1 : 0), 0);
   const surprised = surprisedWords.reduce((n, w) => n + (userText.includes(w) ? 1 : 0), 0);
   const crying = cryingWords.reduce((n, w) => n + (userText.includes(w) ? 1 : 0), 0);
+  const blush = blushWords.reduce((n, w) => n + (userText.includes(w) ? 1 : 0), 0);
+  const flirty = flirtyWords.reduce((n, w) => n + (userText.includes(w) ? 1 : 0), 0);
+  const scared = scaredWords.reduce((n, w) => n + (userText.includes(w) ? 1 : 0), 0);
+  const sleepy = sleepyWords.reduce((n, w) => n + (userText.includes(w) ? 1 : 0), 0);
   // Considera apenas a última mensagem do usuário para "reação imediata"
   const lastUser = [...messages].reverse().find((m) => m.role === "user")?.content.toLowerCase() ?? "";
   const recentShy = shyWords.some((w) => lastUser.includes(w));
@@ -64,6 +76,10 @@ export function analyzeGameState(messages: ChatMessage[], discoveredCount: numbe
   const recentSurprised = surprisedWords.some((w) => lastUser.includes(w));
   const recentCrying = cryingWords.some((w) => lastUser.includes(w));
   const recentAngry = angryWords.some((w) => lastUser.includes(w));
+  const recentBlush = blushWords.some((w) => lastUser.includes(w));
+  const recentFlirty = flirtyWords.some((w) => lastUser.includes(w));
+  const recentScared = scaredWords.some((w) => lastUser.includes(w));
+  const recentSleepy = sleepyWords.some((w) => lastUser.includes(w));
   const turns = messages.filter((m) => m.role === "user").length;
 
   const persuasion = Math.max(0, Math.min(100, 12 + turns * 4 + soft * 9 + discoveredCount * 12 - angry * 12));
@@ -75,31 +91,40 @@ export function analyzeGameState(messages: ChatMessage[], discoveredCount: numbe
   // ————————————————————————————————————————————
   const lastAiContent = [...messages].reverse().find((m) => m.role === "assistant")?.content ?? "";
   const lastUserContent = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
-  const actionMood = detectMoodFromActions([
+  const actionMoodResult = detectMoodFromActions([
     ...extractActions(lastAiContent),
     ...extractActions(lastUserContent),
   ]);
-  if (actionMood) {
+  if (actionMoodResult) {
     return {
-      mood: actionMood.mood,
+      mood: actionMoodResult.mood,
+      secondaryMood: actionMoodResult.secondary,
       persuasion,
       suspicion,
-      triggers: [actionMood.trigger],
+      triggers: [actionMoodResult.trigger],
       confidence: 95,
     };
   }
 
   let mood: Mood = "calm";
   // Reações imediatas à última fala têm prioridade
-  if (recentCrying) mood = "crying";
+  if (recentScared) mood = "scared";
+  else if (recentCrying) mood = "crying";
   else if (recentAngry) mood = "angry";
+  else if (recentBlush) mood = "blush";
+  else if (recentFlirty) mood = "flirty";
+  else if (recentSleepy) mood = "sleepy";
   else if (recentSurprised) mood = "surprised";
   else if (recentShy) mood = "shy";
   else if (recentHappy) mood = "happy";
   else if (recentSad) mood = "sad";
+  else if (scared > 0) mood = "scared";
   else if (crying > 0 && suspicion > 60) mood = "crying";
   else if (persuasion >= 70) mood = "hopeful";
   else if (angry > 0 || suspicion >= 70) mood = "angry";
+  else if (blush > 0) mood = "blush";
+  else if (flirty > 0) mood = "flirty";
+  else if (sleepy > 0) mood = "sleepy";
   else if (surprised > 0) mood = "surprised";
   else if (suspicion >= 45) mood = "tense";
   else if (sad > 0) mood = "sad";
@@ -115,6 +140,10 @@ export function analyzeGameState(messages: ChatMessage[], discoveredCount: numbe
     mood === "surprised" ? surprisedWords :
     mood === "crying" ? cryingWords :
     mood === "angry" ? angryWords :
+    mood === "blush" ? blushWords :
+    mood === "flirty" ? flirtyWords :
+    mood === "scared" ? scaredWords :
+    mood === "sleepy" ? sleepyWords :
     mood === "tense" ? tenseWords :
     mood === "soft" ? softWords :
     [];
@@ -135,7 +164,7 @@ export function analyzeGameState(messages: ChatMessage[], discoveredCount: numbe
     20;
   const confidence = Math.max(10, Math.min(100, Math.round(raw + (triggers.length ? 20 : 0))));
 
-  return { mood, persuasion, suspicion, triggers, confidence };
+  return { mood, secondaryMood: undefined as Mood | undefined, persuasion, suspicion, triggers, confidence };
 }
 
 export const MOOD_LABELS: Record<Mood, string> = {
@@ -149,4 +178,8 @@ export const MOOD_LABELS: Record<Mood, string> = {
   sad: "triste",
   surprised: "surpresa",
   crying: "chorando",
+  blush: "muito ruborizada",
+  flirty: "provocante",
+  scared: "assustada",
+  sleepy: "sonolenta",
 };

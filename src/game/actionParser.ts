@@ -42,6 +42,33 @@ const MOOD_ACTION_KEYWORDS: Partial<Record<Mood, Array<[string, number?]>>> = {
     ["gagueja", 4], ["gaguejando", 4], ["morde o lábio envergonhada", 6],
     ["esconde o rosto", 5], ["se esconde atrás", 4],
   ],
+  blush: [
+    ["cora intensamente", 7], ["cora muito", 7], ["fica completamente vermelha", 8],
+    ["fica escarlate", 8], ["ruboriza intensamente", 7], ["cobre o rosto envergonhada", 7],
+    ["cobre o rosto com as mãos", 6], ["esconde o rosto vermelh", 7],
+    ["rosto pega fogo", 7], ["queima de vergonha", 6], ["deeply blushes", 6],
+    ["face flushes deeply", 6],
+  ],
+  flirty: [
+    ["sorri maliciosa", 7], ["sorri sedutora", 7], ["sorri provocante", 7],
+    ["dá uma piscadela", 6], ["pisca sedutora", 7], ["morde o lábio provocante", 7],
+    ["olha de canto", 4], ["se aproxima sensualmente", 7], ["sussurra no ouvido", 6],
+    ["encosta o corpo em você", 6], ["passa a mão pelo cabelo provocante", 6],
+    ["winks", 5], ["smirks", 6], ["teases", 5],
+  ],
+  scared: [
+    ["treme de medo", 8], ["olhar aterrorizada", 7], ["se encolhe assustada", 7],
+    ["fica pálida de medo", 8], ["recua com medo", 7], ["grita de susto", 6],
+    ["olhos arregalados de medo", 8], ["cobre a boca com medo", 7],
+    ["dá um passo para trás assustada", 7], ["shrinks back in fear", 6],
+    ["trembles in fear", 7], ["gasps in terror", 7],
+  ],
+  sleepy: [
+    ["boceja", 6], ["esfrega os olhos", 5], ["cai no sono", 7], ["cochila", 7],
+    ["olhos pesados", 6], ["mal consegue manter os olhos abertos", 7],
+    ["se espreguiça sonolenta", 6], ["yawns", 5], ["rubs her eyes sleepy", 6],
+    ["dozing off", 6],
+  ],
   happy: [
     ["gargalha", 5], ["gargalhada", 5], ["risadinha", 4], ["ri alto", 5],
     ["ri feliz", 5], ["sorri largo", 5], ["sorri feliz", 5], ["sorri animada", 5],
@@ -86,17 +113,39 @@ const MOOD_ACTION_KEYWORDS: Partial<Record<Mood, Array<[string, number?]>>> = {
  * "Autorizador" de troca de emoção pelas ações:
  * pontua todas as ações e escolhe o humor com maior soma de pesos.
  * Frases mais específicas (ex.: "sorri timidamente") vencem palavras genéricas ("sorri").
+ *
+ * Prioridade quando várias emoções aparecem na mesma mensagem:
+ *  - Emoções compatíveis (mesma valência) são MISTURADAS: retorna primária + secundária.
+ *  - Emoções incompatíveis (ex.: raiva + feliz): a ÚLTIMA no texto vence.
  */
-export function detectMoodFromActions(actions: string[]): { mood: Mood; trigger: string } | null {
+const MOOD_VALENCE: Record<Mood, "warm" | "distress" | "neutral"> = {
+  calm: "neutral", soft: "warm", hopeful: "warm", shy: "warm",
+  happy: "warm", blush: "warm", flirty: "warm", sleepy: "warm",
+  sad: "distress", crying: "distress", angry: "distress",
+  tense: "distress", scared: "distress", surprised: "neutral",
+};
+
+export function detectMoodFromActions(
+  actions: string[],
+): { mood: Mood; secondary?: Mood; trigger: string } | null {
   if (!actions.length) return null;
   const scores: Partial<Record<Mood, number>> = {};
   const bestTrigger: Partial<Record<Mood, { kw: string; weight: number }>> = {};
+  // Rastreia posição da última ocorrência de cada mood (para desempate por "última").
+  const lastPos: Partial<Record<Mood, number>> = {};
   const joined = actions.join(" | ");
   for (const mood of Object.keys(MOOD_ACTION_KEYWORDS) as Mood[]) {
     const kws = MOOD_ACTION_KEYWORDS[mood]!;
     for (const [kw, w = 3] of kws) {
-      if (!joined.includes(kw)) continue;
-      scores[mood] = (scores[mood] ?? 0) + w;
+      let from = 0;
+      let idx = joined.indexOf(kw, from);
+      if (idx === -1) continue;
+      while (idx !== -1) {
+        scores[mood] = (scores[mood] ?? 0) + w;
+        lastPos[mood] = Math.max(lastPos[mood] ?? -1, idx);
+        from = idx + kw.length;
+        idx = joined.indexOf(kw, from);
+      }
       const prev = bestTrigger[mood];
       if (!prev || w > prev.weight) bestTrigger[mood] = { kw, weight: w };
     }
@@ -104,8 +153,26 @@ export function detectMoodFromActions(actions: string[]): { mood: Mood; trigger:
   const entries = Object.entries(scores) as Array<[Mood, number]>;
   if (!entries.length) return null;
   entries.sort((a, b) => b[1] - a[1]);
-  const [mood] = entries[0];
-  return { mood, trigger: bestTrigger[mood]?.kw ?? mood };
+  // Detecta valências presentes
+  const valences = new Set(entries.map(([m]) => MOOD_VALENCE[m]));
+  const hasConflict = valences.has("warm") && valences.has("distress");
+  let primary: Mood;
+  let secondary: Mood | undefined;
+  if (hasConflict) {
+    // Última emoção mencionada vence
+    const sortedByPos = [...entries].sort(
+      (a, b) => (lastPos[b[0]] ?? -1) - (lastPos[a[0]] ?? -1),
+    );
+    primary = sortedByPos[0][0];
+  } else {
+    primary = entries[0][0];
+    // Se há uma segunda emoção compatível com peso relevante, mistura
+    const candidate = entries.find(
+      ([m]) => m !== primary && MOOD_VALENCE[m] === MOOD_VALENCE[primary],
+    );
+    if (candidate && candidate[1] >= 3) secondary = candidate[0];
+  }
+  return { mood: primary, secondary, trigger: bestTrigger[primary]?.kw ?? primary };
 }
 
 const LANGUAGE_LABELS = {
