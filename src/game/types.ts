@@ -49,7 +49,11 @@ export type Mood =
   | "happy"
   | "sad"
   | "surprised"
-  | "crying";
+  | "crying"
+  | "blush"
+  | "flirty"
+  | "scared"
+  | "sleepy";
 
 export type ChatPreset = "economic" | "normal";
 
