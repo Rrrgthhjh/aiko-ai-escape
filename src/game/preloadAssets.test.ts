@@ -2,10 +2,13 @@ import { describe, it, expect } from "vitest";
 import { AVATAR_ASSETS, preloadAvatarAssets } from "./preloadAssets";
 
 describe("preloadAvatarAssets", () => {
-  it("inclui todas as 6 emoções + retrato base + variantes (14 no total)", () => {
-    expect(AVATAR_ASSETS.length).toBe(14);
+  it("inclui todas as 10 emoções + retrato base + variantes (18 no total)", () => {
+    expect(AVATAR_ASSETS.length).toBe(18);
     // Deve conter cada mood key esperado (via substring do path)
-    for (const key of ["mood-shy", "mood-happy", "mood-sad", "mood-surprised", "mood-crying", "mood-angry", "portrait"]) {
+    for (const key of [
+      "mood-shy", "mood-happy", "mood-sad", "mood-surprised", "mood-crying", "mood-angry",
+      "mood-blush", "mood-flirty", "mood-scared", "mood-sleepy", "portrait",
+    ]) {
       expect(AVATAR_ASSETS.some((src) => src.includes(key))).toBe(true);
     }
   });
