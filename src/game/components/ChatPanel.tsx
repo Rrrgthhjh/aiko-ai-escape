@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
-import { Send, AlertTriangle, Loader2 } from "lucide-react";
+import { Send, AlertTriangle, Loader2, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
 import type { Character, ChatMessage, Mood } from "../types";
 import type { ChatSettings } from "../types";
 import { DEFAULT_CHAT_SETTINGS } from "../types";
@@ -10,6 +10,20 @@ import { filterUserMessage } from "../contentFilter";
 import { MOOD_LABELS } from "../gameState";
 import { findCachedResponse, loadChatCache, addCacheEntry } from "../storage";
 import { useDevMode, DEV_MAX_MESSAGE_LENGTH } from "../devMode";
+import { extractAgeFromText, voiceProfileForAge } from "../voice";
+
+const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts`;
+const STT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stt`;
+const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
+
+/** Remove asteriscos (ações) e markdown básico para TTS mais natural. */
+function stripForSpeech(text: string): string {
+  return text
+    .replace(/\*[^*]+\*/g, " ")
+    .replace(/[*_`~]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 type Props = {
   character: Character;
@@ -28,24 +42,123 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [warn, setWarn] = useState<string | null>(null);
+  const [voiceMode, setVoiceMode] = useState<boolean>(() => localStorage.getItem("aiko:voice") === "1");
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const voiceProfile = (() => {
+    const age = extractAgeFromText(character.personality || "");
+    return voiceProfileForAge(age);
+  })();
+
+  useEffect(() => {
+    localStorage.setItem("aiko:voice", voiceMode ? "1" : "0");
+    if (!voiceMode && audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+  }, [voiceMode]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  // Sem saudação automática: a IA só responde após o jogador enviar a primeira mensagem.
-  // Isso garante que o idioma da resposta seja detectado pela fala do jogador.
+  const speak = async (rawText: string) => {
+    const text = stripForSpeech(rawText);
+    if (!text) return;
+    try {
+      // interrompe áudio anterior
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      const resp = await fetch(TTS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${ANON}` },
+        body: JSON.stringify({
+          text,
+          voice: voiceProfile.voice,
+          instructions: voiceProfile.instructions,
+          speed: voiceProfile.speed,
+        }),
+      });
+      if (!resp.ok) return;
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audioRef.current = audio;
+      audio.onended = () => URL.revokeObjectURL(url);
+      await audio.play().catch(() => {});
+    } catch {
+      /* falha silenciosa — mantém experiência textual */
+    }
+  };
 
-  const send = async () => {
+  const startRecording = async () => {
+    if (recording || loading || transcribing) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mime = MediaRecorder.isTypeSupported("audio/webm")
+        ? "audio/webm"
+        : (MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" : "");
+      const rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+      mediaRecorderRef.current = rec;
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+      rec.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(chunksRef.current, { type: rec.mimeType || "audio/webm" });
+        if (blob.size < 1500) { setWarn("Gravação muito curta — tente novamente."); return; }
+        setTranscribing(true);
+        try {
+          const form = new FormData();
+          form.append("file", blob, "recording.webm");
+          const resp = await fetch(STT_URL, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${ANON}` },
+            body: form,
+          });
+          const data = await resp.json();
+          if (data?.text) {
+            setInput((prev) => (prev ? prev + " " : "") + data.text);
+            // envia imediatamente após transcrever
+            setTimeout(() => sendWithText(data.text), 50);
+          } else {
+            setWarn(data?.error || "Não consegui entender o áudio.");
+          }
+        } catch {
+          setWarn("Falha na transcrição.");
+        } finally {
+          setTranscribing(false);
+        }
+      };
+      rec.start();
+      setRecording(true);
+    } catch {
+      setWarn("Não foi possível acessar o microfone.");
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && recording) {
+      mediaRecorderRef.current.stop();
+      setRecording(false);
+    }
+  };
+
+  const sendWithText = async (rawText: string) => {
     if (loading) return;
     let cleaned: string;
     if (devMode) {
-      cleaned = input.trim();
-      if (!cleaned) { setWarn("Mensagem vazia."); return; }
+      cleaned = rawText.trim();
+      if (!cleaned) return;
       setWarn(null);
     } else {
-      const f = filterUserMessage(input);
+      const f = filterUserMessage(rawText);
       if (f.ok === false) { setWarn(f.reason); return; }
       setWarn(null);
       cleaned = f.cleaned;
@@ -55,14 +168,13 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
     setMessages((m) => [...m, userMsg]);
     setInput("");
     setLoading(true);
-
     const aiId = crypto.randomUUID();
     setMessages((m) => [...m, { id: aiId, role: "assistant", content: "", ts: Date.now() }]);
-
     const cached = findCachedResponse(trimmed, loadChatCache());
     if (cached) {
       setMessages((m) => m.map((x) => (x.id === aiId ? { ...x, content: cached } : x)));
       setLoading(false);
+      if (voiceMode) speak(cached);
     } else {
       let acc = "";
       await streamChat({
@@ -76,6 +188,7 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
         onDone: () => {
           setLoading(false);
           if (acc.length > 5) addCacheEntry(trimmed, acc);
+          if (voiceMode && acc) speak(acc);
         },
         onError: (msg) => {
           setMessages((m) => m.map((x) => (x.id === aiId ? { ...x, content: `*ela hesita* — ${msg}` } : x)));
@@ -85,17 +198,33 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
     }
   };
 
+  // Sem saudação automática: a IA só responde após o jogador enviar a primeira mensagem.
+  // Isso garante que o idioma da resposta seja detectado pela fala do jogador.
+
+  const send = () => sendWithText(input);
+
   return (
     <div className="flex flex-col h-full bg-card-soft border-t border-border/60 backdrop-blur-md">
-      <div className="px-4 py-2 border-b border-border/60 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 items-center text-[10px] uppercase tracking-widest">
-        <span className="font-display text-primary-glow">{character.name}: {MOOD_LABELS[mood]}</span>
-        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-          <div className="h-full bg-primary transition-all duration-500" style={{ width: `${persuasion}%` }} />
+      <div className="px-4 py-2 border-b border-border/60 flex items-center justify-between gap-3 text-[10px] uppercase tracking-widest">
+        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 items-center flex-1 min-w-0">
+          <span className="font-display text-primary-glow truncate">{character.name}: {MOOD_LABELS[mood]}</span>
+          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+            <div className="h-full bg-primary transition-all duration-500" style={{ width: `${persuasion}%` }} />
+          </div>
+          <span className="text-muted-foreground">convencimento</span>
+          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+            <div className="h-full bg-destructive transition-all duration-500" style={{ width: `${suspicion}%` }} />
+          </div>
         </div>
-        <span className="text-muted-foreground">convencimento</span>
-        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-          <div className="h-full bg-destructive transition-all duration-500" style={{ width: `${suspicion}%` }} />
-        </div>
+        <button
+          onClick={() => setVoiceMode((v) => !v)}
+          title={voiceMode ? "Desativar voz" : "Ativar modo de voz"}
+          className={`shrink-0 h-7 w-7 rounded-md border flex items-center justify-center transition-colors ${
+            voiceMode ? "bg-primary/30 border-primary text-primary-glow" : "border-border/60 text-muted-foreground hover:text-primary-glow"
+          }`}
+        >
+          {voiceMode ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+        </button>
       </div>
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
         {messages.length === 0 && (
@@ -133,11 +262,27 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
       )}
 
       <div className="p-3 border-t border-border/60 flex gap-2">
+        {voiceMode && (
+          <Button
+            onMouseDown={startRecording}
+            onMouseUp={stopRecording}
+            onMouseLeave={() => recording && stopRecording()}
+            onTouchStart={(e) => { e.preventDefault(); startRecording(); }}
+            onTouchEnd={(e) => { e.preventDefault(); stopRecording(); }}
+            disabled={loading || transcribing}
+            size="icon"
+            variant={recording ? "destructive" : "outline"}
+            title="Segure para falar"
+            className="shrink-0"
+          >
+            {transcribing ? <Loader2 className="w-4 h-4 animate-spin" /> : recording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+          </Button>
+        )}
         <textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
-          placeholder={devMode ? `[DEV] Fale com ${character.name}...` : `Fale com ${character.name}...`}
+          placeholder={voiceMode ? `Segure o microfone ou digite para ${character.name}...` : (devMode ? `[DEV] Fale com ${character.name}...` : `Fale com ${character.name}...`)}
           rows={1}
           maxLength={effectiveMaxLength}
           className={`flex-1 resize-none bg-input/80 border rounded-xl px-3 py-2 text-sm focus:outline-none max-h-32 ${devMode ? "border-destructive/60 focus:border-destructive" : "border-border focus:border-primary/60"}`}
