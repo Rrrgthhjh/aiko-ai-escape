@@ -33,9 +33,11 @@ type Props = {
   persuasion: number;
   suspicion: number;
   chatSettings?: ChatSettings;
+  /** Callback opcional para exibir legendas fora do chat (ex.: sobre a cena). */
+  onCaption?: (text: string | null) => void;
 };
 
-export default function ChatPanel({ character, messages, setMessages, mood, persuasion, suspicion, chatSettings }: Props) {
+export default function ChatPanel({ character, messages, setMessages, mood, persuasion, suspicion, chatSettings, onCaption }: Props) {
   const settings = chatSettings ?? DEFAULT_CHAT_SETTINGS;
   const devMode = useDevMode();
   const effectiveMaxLength = devMode ? DEV_MAX_MESSAGE_LENGTH : settings.maxMessageLength;
@@ -91,7 +93,10 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       audioRef.current = audio;
-      audio.onended = () => URL.revokeObjectURL(url);
+      onCaption?.(text);
+      const clear = () => { onCaption?.(null); URL.revokeObjectURL(url); };
+      audio.onended = clear;
+      audio.onpause = () => { if (audio.currentTime >= audio.duration - 0.05) clear(); };
       await audio.play().catch(() => {});
     } catch {
       /* falha silenciosa — mantém experiência textual */
