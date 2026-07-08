@@ -27,6 +27,7 @@ export default function Game({
   const [hudHidden, setHudHidden] = useState(false);
   const [moodOverlayOn, setMoodOverlayOn] = useState(false);
   const [chatSettings, setChatSettings] = useState<ChatSettings>(initial.chatSettings ?? DEFAULT_CHAT_SETTINGS);
+  const [caption, setCaption] = useState<string | null>(null);
   const ROOM_ORDER: Room[] = ["sala", "cozinha", "banheiro", "quarto"];
   const roomIdx = ROOM_ORDER.indexOf(room);
   const [transitioning, setTransitioning] = useState(false);
@@ -198,6 +199,14 @@ export default function Game({
             triggers={gameState.triggers}
           />
         )}
+        {/* Legendas do TTS — aparecem sobre a cena enquanto a IA fala. */}
+        {caption && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-3 z-30 flex justify-center px-4 animate-fade-in">
+            <div className="max-w-[92%] sm:max-w-2xl bg-background/80 backdrop-blur-md border border-primary/40 rounded-xl px-4 py-2 text-sm sm:text-base text-foreground leading-relaxed shadow-glow text-center">
+              {caption}
+            </div>
+          </div>
+        )}
         {!hudHidden && (
         <div className="absolute top-16 left-3 flex flex-col gap-2 z-20">
           <div className="bg-card-soft border border-border/60 rounded-lg px-2.5 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
@@ -210,7 +219,7 @@ export default function Game({
       {/* Chat (oculta com HUD) */}
       {!hudHidden && (
         <div className="h-[44%] sm:h-[40%] min-h-[260px] z-20">
-          <ChatPanel character={character} messages={messages} setMessages={setMessages} mood={gameState.mood} persuasion={gameState.persuasion} suspicion={gameState.suspicion} chatSettings={chatSettings} />
+          <ChatPanel character={character} messages={messages} setMessages={setMessages} mood={gameState.mood} persuasion={gameState.persuasion} suspicion={gameState.suspicion} chatSettings={chatSettings} onCaption={setCaption} />
         </div>
       )}
 

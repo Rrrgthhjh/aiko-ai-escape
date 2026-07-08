@@ -125,16 +125,12 @@ export default function AvatarSVG({
         className={`relative h-full w-auto object-contain object-bottom select-none pointer-events-none animate-mood-fade ${className ?? ""}`}
         style={style}
       />
-      {secondarySrc && secondarySrc !== current && (
-        <img
-          src={secondarySrc}
-          alt=""
-          aria-hidden
-          draggable={false}
-          className={`absolute inset-0 h-full w-auto object-contain object-bottom select-none pointer-events-none mix-blend-screen opacity-30 transition-opacity duration-500 ${className ?? ""}`}
-          style={style}
-        />
-      )}
+      {/*
+        Mistura visual desativada — em vez de sobrepor duas imagens (o que
+        deformava a personagem), aguardamos a criação de imagens de FUSÃO
+        dedicadas (ex.: "chorar de emoção"). Enquanto isso, a última emoção
+        prevalece (ver gameState.analyzeGameState).
+      */}
     </div>
   );
 }
