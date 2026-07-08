@@ -16,6 +16,14 @@ import moodBlush from "@/assets/aiko-mood-blush.png";
 import moodFlirty from "@/assets/aiko-mood-flirty.png";
 import moodScared from "@/assets/aiko-mood-scared.png";
 import moodSleepy from "@/assets/aiko-mood-sleepy.png";
+// Retratos de FUSÃO — combinações compatíveis (mesma valência) com imagem
+// única em vez de sobreposição. A chave é o par ordenado alfabeticamente.
+import fuseCryingHappy from "@/assets/aiko-mood-crying-happy.png";
+import fuseBlushFlirty from "@/assets/aiko-mood-blush-flirty.png";
+import fuseHappyShy from "@/assets/aiko-mood-happy-shy.png";
+import fuseScaredSad from "@/assets/aiko-mood-scared-sad.png";
+import fuseSurprisedHappy from "@/assets/aiko-mood-surprised-happy.png";
+import fuseAngryCrying from "@/assets/aiko-mood-angry-crying.png";
 import type { AppearanceVariant, Character, Mood } from "../types";
 import { useEffect, useRef, useState } from "react";
 
@@ -46,6 +54,19 @@ const MOOD_SRC: Partial<Record<Mood, string>> = {
   scared: moodScared,
   sleepy: moodSleepy,
 };
+
+/** Mapeia um par de emoções (ordem-agnóstico) para uma imagem de fusão dedicada. */
+const MOOD_FUSION_SRC: Record<string, string> = {
+  "crying|happy": fuseCryingHappy,
+  "blush|flirty": fuseBlushFlirty,
+  "happy|shy": fuseHappyShy,
+  "sad|scared": fuseScaredSad,
+  "happy|surprised": fuseSurprisedHappy,
+  "angry|crying": fuseAngryCrying,
+};
+function fusionKey(a: Mood, b: Mood): string {
+  return [a, b].sort().join("|");
+}
 
 /** Animação de gesto por humor — aplicada em um wrapper por cima do breathe/sway. */
 const GESTURE_CLASS: Record<Mood, string> = {
@@ -84,10 +105,16 @@ export default function AvatarSVG({
 }) {
   const variant: AppearanceVariant = character?.appearance ?? "dress";
   const moodSrc = mood ? MOOD_SRC[mood] : undefined;
+  // Se houver mood secundário compatível, tenta usar imagem de FUSÃO dedicada
+  // (ex.: chorar+feliz = "chorar de emoção"). Só para variante padrão.
+  const fusionSrc =
+    mood && secondaryMood && variant === "dress"
+      ? MOOD_FUSION_SRC[fusionKey(mood, secondaryMood)]
+      : undefined;
   // Retratos de emoção só sobrescrevem a variante padrão (mesma pose/roupa base).
-  const src = moodSrc && variant === "dress" ? moodSrc : (VARIANT_SRC[variant] ?? portraitDress);
-  const secondarySrc =
-    secondaryMood && variant === "dress" ? MOOD_SRC[secondaryMood] : undefined;
+  const src =
+    fusionSrc ??
+    (moodSrc && variant === "dress" ? moodSrc : (VARIANT_SRC[variant] ?? portraitDress));
 
   // Crossfade: mantém a imagem anterior por baixo enquanto a nova entra.
   const [current, setCurrent] = useState(src);
@@ -125,12 +152,9 @@ export default function AvatarSVG({
         className={`relative h-full w-auto object-contain object-bottom select-none pointer-events-none animate-mood-fade ${className ?? ""}`}
         style={style}
       />
-      {/*
-        Mistura visual desativada — em vez de sobrepor duas imagens (o que
-        deformava a personagem), aguardamos a criação de imagens de FUSÃO
-        dedicadas (ex.: "chorar de emoção"). Enquanto isso, a última emoção
-        prevalece (ver gameState.analyzeGameState).
-      */}
+      {/* Fusões visuais agora usam UMA imagem dedicada (MOOD_FUSION_SRC).
+          Pares incompatíveis nunca chegam aqui — o parser garante que apenas
+          emoções da mesma valência sejam misturadas. */}
     </div>
   );
 }
