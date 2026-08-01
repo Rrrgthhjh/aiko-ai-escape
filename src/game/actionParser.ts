@@ -52,6 +52,30 @@ export function detectRoomFromActions(actions: string[]): Room | null {
 // Cada mood tem uma lista de gatilhos, com peso opcional. Frases mais específicas
 // (multi-palavra) ganham peso maior para vencer palavras genéricas como "sorri".
 const MOOD_ACTION_KEYWORDS: Partial<Record<Mood, Array<[string, number?]>>> = {
+  // ——— INTENSIDADES BAIXAS (precisam vencer as versões fortes: pesos maiores) ———
+  happySlight: [
+    ["sorriso pequeno", 9], ["pequeno sorriso", 9], ["sorri de leve", 9],
+    ["leve sorriso", 9], ["sorri levemente", 9], ["meio sorriso", 9],
+    ["sorriso discreto", 9], ["canto da boca se curva", 9], ["sorri de canto", 8],
+    ["esboça um sorriso", 9], ["small smile", 9], ["slight smile", 9],
+    ["faint smile", 9], ["smiles faintly", 9], ["lips curl slightly", 8],
+  ],
+  blushLight: [
+    ["cora levemente", 9], ["cora um pouco", 9], ["leve rubor", 9],
+    ["rubor leve", 9], ["bochechas levemente rosadas", 9], ["um leve tom rosado", 9],
+    ["cora de leve", 9], ["blushes slightly", 9], ["faint blush", 9],
+    ["cheeks tinge pink", 9],
+  ],
+  tearSingle: [
+    ["uma lágrima solitária", 10], ["lágrima solitária", 10], ["uma única lágrima", 10],
+    ["uma lágrima escorre", 10], ["uma lágrima cai", 10], ["single tear", 10],
+    ["a lone tear", 10], ["uma lágrima teima em cair", 10],
+  ],
+  angrySlight: [
+    ["levemente irritada", 9], ["franze levemente o cenho", 9], ["leve irritação", 9],
+    ["revira os olhos", 8], ["bufa baixinho", 8], ["aperta os lábios contrariada", 9],
+    ["slightly annoyed", 9], ["frowns slightly", 9],
+  ],
   shy: [
     ["cora levemente", 5], ["cora um pouco", 5], ["cora", 4], ["coro", 4],
     ["blush", 4], ["blushes", 5], ["blushing", 5],
