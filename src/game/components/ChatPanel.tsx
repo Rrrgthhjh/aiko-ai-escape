@@ -340,7 +340,6 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
           placeholder={voiceMode ? `Segure o microfone ou digite para ${character.name}...` : (devMode ? `[DEV] Fale com ${character.name}...` : `Fale com ${character.name}...`)}
           rows={1}
-          maxLength={effectiveMaxLength}
           className={`flex-1 resize-none bg-input/80 border rounded-xl px-3 py-2 text-sm focus:outline-none max-h-32 ${devMode ? "border-destructive/60 focus:border-destructive" : "border-border focus:border-primary/60"}`}
         />
         <Button onClick={send} disabled={loading || !input.trim()} size="icon" className="bg-aurora text-primary-foreground shadow-glow shrink-0">
