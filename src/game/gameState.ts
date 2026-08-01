@@ -1,5 +1,5 @@
 import type { ChatMessage, Mood } from "./types";
-import { extractActions, detectMoodFromActions } from "./actionParser";
+import { detectMoodFromMessage } from "./actionParser";
 
 const softWords = ["por favor", "confio", "entendo", "desculpa", "sinto", "calma", "obrigado", "obrigada"];
 const tenseWords = ["mentira", "raptou", "sequestro", "fugir", "polícia", "porta", "chave", "preso", "presa"];
@@ -53,12 +53,12 @@ export function analyzeGameState(messages: ChatMessage[], discoveredCount: numbe
   // Prioridade #1: emoção sinalizada por AÇÃO (*...*)
   // Lê as ações da última mensagem da IA e do jogador.
   // ————————————————————————————————————————————
+  // Autorizador CONTEXTUAL: lê a mensagem INTEIRA (ações + narração),
+  // entendendo negações como "o sorriso desaparece".
   const lastAiContent = [...messages].reverse().find((m) => m.role === "assistant")?.content ?? "";
   const lastUserContent = [...messages].reverse().find((m) => m.role === "user")?.content ?? "";
-  const actionMoodResult = detectMoodFromActions([
-    ...extractActions(lastAiContent),
-    ...extractActions(lastUserContent),
-  ]);
+  const actionMoodResult =
+    detectMoodFromMessage(lastAiContent) ?? detectMoodFromMessage(lastUserContent);
   if (actionMoodResult) {
     return {
       mood: actionMoodResult.mood,
