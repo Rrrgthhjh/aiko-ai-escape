@@ -2,14 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Send, AlertTriangle, Loader2, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
-import type { Character, ChatMessage, Mood } from "../types";
+import type { Character, ChatMessage, Mood, Room } from "../types";
 import type { ChatSettings } from "../types";
-import { DEFAULT_CHAT_SETTINGS } from "../types";
+import { DEFAULT_CHAT_SETTINGS, isPublicPlace } from "../types";
 import { streamChat } from "../chat";
 import { filterUserMessage } from "../contentFilter";
 import { MOOD_LABELS } from "../gameState";
-import { findCachedResponse, loadChatCache, addCacheEntry } from "../storage";
-import { useDevMode, DEV_MAX_MESSAGE_LENGTH } from "../devMode";
+import { findCachedResponse, loadChatCache, addCacheEntry, loadImpressions } from "../storage";
+import { useDevMode } from "../devMode";
 import { extractAgeFromText, voiceProfileForAge } from "../voice";
 
 const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts`;
@@ -35,18 +35,21 @@ type Props = {
   chatSettings?: ChatSettings;
   /** Callback opcional para exibir legendas fora do chat (ex.: sobre a cena). */
   onCaption?: (text: string | null) => void;
+  /** Local atual — a IA sempre sabe onde está. */
+  room: Room;
 };
 
-export default function ChatPanel({ character, messages, setMessages, mood, persuasion, suspicion, chatSettings, onCaption }: Props) {
+export default function ChatPanel({ character, messages, setMessages, mood, persuasion, suspicion, chatSettings, onCaption, room }: Props) {
   const settings = chatSettings ?? DEFAULT_CHAT_SETTINGS;
   const devMode = useDevMode();
-  const effectiveMaxLength = devMode ? DEV_MAX_MESSAGE_LENGTH : settings.maxMessageLength;
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [warn, setWarn] = useState<string | null>(null);
   const [voiceMode, setVoiceMode] = useState<boolean>(() => localStorage.getItem("aiko:voice") === "1");
   const [recording, setRecording] = useState(false);
   const [transcribing, setTranscribing] = useState(false);
+  const [micPermission, setMicPermission] = useState<"unknown" | "granted" | "denied" | "prompt">("unknown");
+  const [askingMic, setAskingMic] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -107,6 +110,7 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
     if (recording || loading || transcribing) return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      setMicPermission("granted");
       const mime = MediaRecorder.isTypeSupported("audio/webm")
         ? "audio/webm"
         : (MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" : "");
@@ -143,10 +147,53 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
       };
       rec.start();
       setRecording(true);
-    } catch {
-      setWarn("Não foi possível acessar o microfone.");
+    } catch (e) {
+      const err = e as { name?: string };
+      if (err?.name === "NotAllowedError" || err?.name === "SecurityError") {
+        setMicPermission("denied");
+        setWarn("Permissão do microfone negada. Clique no cadeado 🔒 na barra de endereço do navegador e permita o microfone para este site.");
+      } else if (err?.name === "NotFoundError") {
+        setWarn("Nenhum microfone encontrado no dispositivo.");
+      } else {
+        setWarn("Não foi possível acessar o microfone.");
+      }
     }
   };
+
+  /** Dispara o diálogo nativo de permissão do navegador. */
+  const requestMicPermission = async () => {
+    setAskingMic(true);
+    setWarn(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((t) => t.stop());
+      setMicPermission("granted");
+    } catch (e) {
+      const err = e as { name?: string };
+      setMicPermission(err?.name === "NotAllowedError" ? "denied" : "prompt");
+      setWarn(
+        err?.name === "NotAllowedError"
+          ? "Você bloqueou o microfone. Abra o cadeado 🔒 do navegador e mude para 'Permitir'."
+          : "Não foi possível acessar o microfone.",
+      );
+    } finally {
+      setAskingMic(false);
+    }
+  };
+
+  // Consulta o estado da permissão ao ligar o modo de voz.
+  useEffect(() => {
+    if (!voiceMode) return;
+    const perms = (navigator as Navigator & { permissions?: Permissions }).permissions;
+    if (!perms?.query) { setMicPermission("prompt"); return; }
+    perms
+      .query({ name: "microphone" as PermissionName })
+      .then((st) => {
+        setMicPermission(st.state as "granted" | "denied" | "prompt");
+        st.onchange = () => setMicPermission(st.state as "granted" | "denied" | "prompt");
+      })
+      .catch(() => setMicPermission("prompt"));
+  }, [voiceMode]);
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && recording) {
@@ -168,7 +215,8 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
       setWarn(null);
       cleaned = f.cleaned;
     }
-    const trimmed = cleaned.slice(0, effectiveMaxLength);
+    // Sem limite de tamanho — a mensagem vai inteira.
+    const trimmed = cleaned;
     const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: trimmed, ts: Date.now() };
     setMessages((m) => [...m, userMsg]);
     setInput("");
@@ -186,6 +234,9 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
         history: [...messages, userMsg],
         character,
         chatSettings: settings,
+        room,
+        isPublic: isPublicPlace(room),
+        impressions: loadImpressions().map((i) => i.text),
         onDelta: (c) => {
           acc += c;
           setMessages((m) => m.map((x) => (x.id === aiId ? { ...x, content: acc } : x)));
