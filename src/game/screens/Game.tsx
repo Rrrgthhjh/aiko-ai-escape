@@ -9,9 +9,9 @@ import AvatarSVG from "../components/AvatarSVG";
 import CreditIndicator from "../components/CreditIndicator";
 import MoodOverlay from "../components/MoodOverlay";
 import type { SaveState, Character, ChatMessage, Mood, Room } from "../types";
-import { DEFAULT_CHAT_SETTINGS } from "../types";
+import { DEFAULT_CHAT_SETTINGS, PLACE_ROOMS, ROOM_LABELS, placeOfRoom } from "../types";
 import type { ChatSettings } from "../types";
-import { writeSave } from "../storage";
+import { writeSave, saveImpressionsFrom } from "../storage";
 import { toast } from "sonner";
 import { analyzeGameState, MOOD_LABELS } from "../gameState";
 import { extractActions, detectRoomFromActions } from "../actionParser";
@@ -28,7 +28,9 @@ export default function Game({
   const [moodOverlayOn, setMoodOverlayOn] = useState(false);
   const [chatSettings, setChatSettings] = useState<ChatSettings>(initial.chatSettings ?? DEFAULT_CHAT_SETTINGS);
   const [caption, setCaption] = useState<string | null>(null);
-  const ROOM_ORDER: Room[] = ["sala", "cozinha", "banheiro", "quarto"];
+  const ROOM_ORDER: Room[] = [
+    ...PLACE_ROOMS.casa, ...PLACE_ROOMS.parque, ...PLACE_ROOMS.shopping,
+  ];
   const roomIdx = ROOM_ORDER.indexOf(room);
   const [transitioning, setTransitioning] = useState(false);
   const changeRoom = (target: Room) => {
@@ -57,6 +59,10 @@ export default function Game({
     flirty: "saturate-125 brightness-110 contrast-110 drop-shadow-[0_0_22px_hsl(var(--accent)/0.55)]",
     scared: "saturate-75 brightness-90 contrast-125 hue-rotate-[-15deg]",
     sleepy: "saturate-90 brightness-95 contrast-90",
+    happySlight: "saturate-110 brightness-105",
+    blushLight: "saturate-115 brightness-105",
+    tearSingle: "saturate-85 brightness-95",
+    angrySlight: "saturate-105 contrast-110 brightness-95",
   };
 
   // wrapper que persiste sempre
@@ -94,14 +100,17 @@ export default function Game({
   }, [messages]);
 
   const handleClearMemory = () => {
+    // A memória some, mas as IMPRESSÕES ficam: ela reage diferente sem saber por quê.
+    saveImpressionsFrom(messages);
     _setMessages(() => {
       writeSave({ character, portrait: null, messages: [], warningSeen: true, chatSettings });
       return [];
     });
-    toast.success(`${character.name} esqueceu tudo.`);
+    toast.success(`${character.name} esqueceu a conversa — mas algo dela permaneceu.`);
   };
 
   const handleUpdateCharacter = async (c: Character) => {
+    saveImpressionsFrom(messages);
     setCharacter(c);
     _setMessages(() => {
       writeSave({ character: c, portrait: null, messages: [], warningSeen: true, chatSettings });
@@ -210,7 +219,7 @@ export default function Game({
         {!hudHidden && (
         <div className="absolute top-16 left-3 flex flex-col gap-2 z-20">
           <div className="bg-card-soft border border-border/60 rounded-lg px-2.5 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-            {room} · {MOOD_LABELS[gameState.mood]}
+            {ROOM_LABELS[room]} · {placeOfRoom(room)} · {MOOD_LABELS[gameState.mood]}
           </div>
         </div>
         )}
@@ -219,7 +228,7 @@ export default function Game({
       {/* Chat (oculta com HUD) */}
       {!hudHidden && (
         <div className="h-[44%] sm:h-[40%] min-h-[260px] z-20">
-          <ChatPanel character={character} messages={messages} setMessages={setMessages} mood={gameState.mood} persuasion={gameState.persuasion} suspicion={gameState.suspicion} chatSettings={chatSettings} onCaption={setCaption} />
+          <ChatPanel character={character} messages={messages} setMessages={setMessages} mood={gameState.mood} persuasion={gameState.persuasion} suspicion={gameState.suspicion} chatSettings={chatSettings} onCaption={setCaption} room={room} />
         </div>
       )}
 
