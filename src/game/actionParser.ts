@@ -12,6 +12,18 @@ const ROOM_KEYWORDS: Record<Room, string[]> = {
   cozinha: ["cozinha", "kitchen", "cocina"],
   banheiro: ["banheiro", "bathroom", "baño", "toilet", "lavabo"],
   quarto: ["quarto", "bedroom", "dormitorio", "recámara"],
+  lago: ["lago", "lake", "beira do lago", "pond"],
+  quadra: ["quadra", "court", "cancha", "quadra de esportes", "basketball court"],
+  "loja-de-roupas": ["loja de roupas", "clothing store", "provador", "tienda de ropa", "boutique"],
+  "fast-food": ["praça de alimentação", "fast food", "fast-food", "lanchonete", "food court"],
+  "loja-de-brinquedos": ["loja de brinquedos", "toy store", "brinquedos", "juguetería"],
+};
+
+/** Palavras que indicam ir para um local macro sem citar sub-local. */
+export const PLACE_KEYWORDS: Record<"casa" | "parque" | "shopping", string[]> = {
+  casa: ["para casa", "pra casa", "de volta pra casa", "de volta para casa", "back home", "a casa"],
+  parque: ["parque", "park", "parque da cidade"],
+  shopping: ["shopping", "mall", "centro comercial"],
 };
 
 /**
@@ -19,9 +31,18 @@ const ROOM_KEYWORDS: Record<Room, string[]> = {
  * só troca se o nome do cômodo estiver dentro de *asteriscos* (ação real, não fala).
  */
 export function detectRoomFromActions(actions: string[]): Room | null {
+  // Sub-locais específicos vencem locais macro (ex.: "lago" antes de "parque").
   for (const a of actions) {
     for (const room of Object.keys(ROOM_KEYWORDS) as Room[]) {
       if (ROOM_KEYWORDS[room].some((k) => a.includes(k))) return room;
+    }
+  }
+  const FIRST_OF_PLACE: Record<"casa" | "parque" | "shopping", Room> = {
+    casa: "sala", parque: "lago", shopping: "loja-de-roupas",
+  };
+  for (const a of actions) {
+    for (const place of Object.keys(PLACE_KEYWORDS) as Array<"casa" | "parque" | "shopping">) {
+      if (PLACE_KEYWORDS[place].some((k) => a.includes(k))) return FIRST_OF_PLACE[place];
     }
   }
   return null;
