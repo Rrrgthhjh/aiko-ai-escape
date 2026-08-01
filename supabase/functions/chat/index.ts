@@ -3,10 +3,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// --- Defaults (overridable by client settings) ---
-const DEFAULT_RECENT_LIMIT = 8;
-const SUMMARY_MAX_CHARS = 240; // resumo curto das mensagens mais antigas
-const DEFAULT_MAX_TOKENS = 120;
+// --- Sem limites: memória completa e resposta livre ---
+const MAX_TOKENS_CAP = 4000;
+
+const ROOM_DESCRIPTIONS: Record<string, { place: string; label: string; publicPlace: boolean }> = {
+  sala: { place: "a casa dela", label: "a sala de estar", publicPlace: false },
+  cozinha: { place: "a casa dela", label: "a cozinha", publicPlace: false },
+  banheiro: { place: "a casa dela", label: "o banheiro", publicPlace: false },
+  quarto: { place: "a casa dela", label: "o quarto", publicPlace: false },
+  lago: { place: "o parque da cidade", label: "a beira do lago", publicPlace: true },
+  quadra: { place: "o parque da cidade", label: "a quadra de esportes", publicPlace: true },
+  "loja-de-roupas": { place: "o shopping", label: "uma loja de roupas", publicPlace: true },
+  "fast-food": { place: "o shopping", label: "a praça de alimentação", publicPlace: true },
+  "loja-de-brinquedos": { place: "o shopping", label: "uma loja de brinquedos", publicPlace: true },
+};
 
 const LANGUAGE_LABELS = {
   pt: "pt-BR (português brasileiro)",
