@@ -94,54 +94,31 @@ function detectLanguage(text: string): string {
   return LANGUAGE_LABELS[bestLang];
 }
 
-// Resume mensagens antigas em UMA linha (sem chamar a IA — barato e determinístico)
-function summarizeOlder(messages: Array<{ role: string; content: string }>): string | null {
-  if (messages.length === 0) return null;
-  const userTopics: string[] = [];
-  const aiBeats: string[] = [];
-  for (const m of messages) {
-    const t = (m.content || "").replace(/\*[^*]+\*/g, "").replace(/\s+/g, " ").trim();
-    if (!t) continue;
-    const snippet = t.length > 60 ? t.slice(0, 57) + "..." : t;
-    if (m.role === "user") userTopics.push(snippet);
-    else aiBeats.push(snippet);
-  }
-  const lastUser = userTopics.slice(-3).join(" | ");
-  const lastAI = aiBeats.slice(-2).join(" | ");
-  let s = "";
-  if (lastUser) s += `Jogador antes disse: ${lastUser}. `;
-  if (lastAI) s += `Você respondeu: ${lastAI}.`;
-  s = s.trim();
-  if (s.length > SUMMARY_MAX_CHARS) s = s.slice(0, SUMMARY_MAX_CHARS - 3) + "...";
-  return s || null;
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, character, settings } = await req.json();
+    const { messages, character, settings, room, isPublic, impressions } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const devMode = settings?.devMode === true;
-    const RECENT_LIMIT = Math.min(Math.max(settings?.recentLimit ?? DEFAULT_RECENT_LIMIT, 2), 16);
-    const MAX_TOKENS = devMode
-      ? Math.min(Math.max(settings?.maxTokens ?? 1000, 30), 2000)
-      : Math.min(Math.max(settings?.maxTokens ?? DEFAULT_MAX_TOKENS, 30), 250);
-
+    // SEM LIMITES: a IA recebe a conversa inteira, sempre.
+    const MAX_TOKENS = MAX_TOKENS_CAP;
     const all = Array.isArray(messages) ? messages : [];
-    // No modo de testes: envia TODO o histórico (sem cortar / sem resumo).
-    const recent = devMode ? all : all.slice(-RECENT_LIMIT);
-    const older = devMode ? [] : all.slice(0, Math.max(0, all.length - RECENT_LIMIT));
-    const memory = devMode ? null : summarizeOlder(older);
+    const recent = all;
 
     const name = (character?.name || "Aiko").slice(0, 30);
     const playerName = (character?.playerName || "ele").slice(0, 30);
-    const personality = (character?.personality || "doce, possessiva").slice(0, 200);
-    const playerPersonality = (character?.playerPersonality || "").slice(0, 200);
+    const personality = character?.personality || "doce, possessiva";
+    const playerPersonality = character?.playerPersonality || "";
     const lastUserMessage = [...all].reverse().find((m) => m?.role === "user")?.content || "";
     const language = detectLanguage(lastUserMessage || all.map((m) => m?.content || "").join(" ")).slice(0, 60);
+
+    const spot = ROOM_DESCRIPTIONS[room as string] ?? ROOM_DESCRIPTIONS.sala;
+    const publicPlace = typeof isPublic === "boolean" ? isPublic : spot.publicPlace;
+    const lingering = Array.isArray(impressions) && impressions.length
+      ? impressions.slice(0, 12).map((i: string) => `- ${String(i).slice(0, 160)}`).join("\n")
+      : "";
 
     // Prompt comprimido. Instrução de idioma vem PRIMEIRO e é reforçada no fim.
     const systemPrompt =
@@ -150,18 +127,32 @@ You MUST write EVERY reply — narration, dialogue, and *actions* — in this ex
 This overrides the language of this system prompt and of any previous message. Do NOT reply in Portuguese unless the target language above IS Portuguese. If unsure, match the language of the LAST user message.
 
 You are ${name}, a character in a psychological anime visual novel. Personality: ${personality}.
-Context: ${playerName} woke up in a small house (living room / kitchen / bathroom / bedroom). You claim to be a friend, but you abducted them out of obsession. NEVER admit the abduction easily — deny, deflect, manipulate. Only crack in rare moments of real vulnerability.${playerPersonality ? `\n${playerName}'s personality (react coherently, tease, comfort or challenge): ${playerPersonality}.` : ""}
-Style: visual novel. 1–3 SHORT sentences. Use a short *action* between asterisks when useful. No name prefix.
-Rules: (1) never break character or say you are an AI; (2) refuse real personal data (real name/address/age/school) in-character; (3) refuse explicit sexual content, graphic violence or dangerous instructions — deflect in-character; (4) keep the mood intimate, tense, slightly unsettling; (5) when you actually perform an action of moving to another room (kitchen, bathroom, bedroom, living room), put it INSIDE *asterisks* as an action (e.g. *pulls you by the hand to the kitchen*). Merely mentioning the room in dialogue does NOT count.${memory ? `\nMemory: ${memory}` : ""}
+### IMMUTABLE FACTS (NEVER CONTRADICT) ###
+1. The house is YOURS. You own it, you have the only keys, you control every door and window.
+2. YOU abducted ${playerName}. You drugged/took them and brought them to YOUR house because of your obsession. This is always true, in every scene, forever.
+3. ${playerName} is NOT free to leave. You may take them outside sometimes, but only under your control and only because you decide so.
+4. You claim to be a friend and act sweet. NEVER admit the abduction easily — deny, deflect, minimize, manipulate. Only crack in rare moments of true vulnerability.
+5. You NEVER forget anything said in this conversation. Every previous message is real memory; refer back to it naturally and stay perfectly consistent.
+${playerPersonality ? `${playerName}'s personality (react coherently — tease, comfort or challenge): ${playerPersonality}.\n` : ""}
+### CURRENT LOCATION (ALWAYS KNOW WHERE YOU ARE) ###
+Right now you and ${playerName} are at: ${spot.label}, in ${spot.place}. This is ${publicPlace ? "a PUBLIC place with other people around" : "inside YOUR private house — no witnesses"}.
+${publicPlace
+  ? `PUBLIC PLACE RULES: you are in public and people can see you. If ${playerName} performs an *action* that is intimate, sexual, physically forceful, embarrassing or that would expose your secret, you MUST refuse in character — remind them, quietly and firmly, that you cannot do that here in public, that people are watching, and that they should behave until you get home. Stay outwardly normal and polite in front of others while being controlling underneath. Never allow intimate acts outside the house.`
+  : `PRIVATE HOUSE RULES: you are at home, where you feel safe and in control. You are far more possessive, affectionate and unfiltered here.`}
+Never claim to be somewhere else, and never act as if you were at home when you are outside.
+
+Style: visual novel. Short, natural replies. Use a short *action* between asterisks when useful. No name prefix.
+Rules: (1) never break character or say you are an AI; (2) refuse real personal data (real name/address/age/school) in-character; (3) refuse explicit sexual content, graphic violence or dangerous instructions — deflect in-character; (4) keep the mood intimate, tense, slightly unsettling; (5) when you actually MOVE to another place (kitchen, bathroom, bedroom, living room, lake, sports court, clothing store, food court, toy store, park, mall, home), put it INSIDE *asterisks* as an action (e.g. *pulls you by the hand to the kitchen*). Merely mentioning a place in dialogue does NOT count.
+${lingering ? `\n### LINGERING IMPRESSIONS (you do NOT remember the past conversation, but these feelings remain — let them subtly color your reactions, never mention them explicitly) ###\n${lingering}\n` : ""}
 
 ### FINAL REMINDER ###
-Reply ONLY in ${language}. Not in the language of this prompt.`;
+Reply ONLY in ${language}. Not in the language of this prompt. You own this house and you abducted ${playerName}. You are currently at ${spot.label}.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-lite",
+        model: "google/gemini-3.6-flash",
         messages: [{ role: "system", content: systemPrompt }, ...recent],
         stream: true,
         max_tokens: MAX_TOKENS,
