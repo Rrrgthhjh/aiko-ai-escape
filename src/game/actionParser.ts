@@ -168,56 +168,124 @@ const MOOD_VALENCE: Record<Mood, "warm" | "distress" | "neutral"> = {
   happy: "warm", blush: "warm", flirty: "warm", sleepy: "warm",
   sad: "distress", crying: "distress", angry: "distress",
   tense: "distress", scared: "distress", surprised: "neutral",
+  happySlight: "warm", blushLight: "warm",
+  tearSingle: "distress", angrySlight: "distress",
 };
 
-export function detectMoodFromActions(
-  actions: string[],
+/**
+ * Marcadores de CANCELAMENTO/NEGAÇÃO de uma emoção.
+ * Ex.: "o sorriso desaparece instantaneamente" não deve virar "feliz".
+ */
+const CANCEL_MARKERS = [
+  "desaparec", "some do rosto", "some de", "somem", "se apaga", "apaga-se",
+  "morre nos lábios", "se desfaz", "esvai", "esvanec", "se dissolve",
+  "deixa de", "para de", "já não", "não consegue mais", "perde o",
+  "congela no rosto", "fica sem", "murcha", "se fecha",
+  "fades", "faded", "vanish", "disappear", "no longer", "dies on her lips",
+  "falso", "forçad", "sem vontade", "sem graça nenhuma", "amarelo",
+];
+
+/** Para onde a emoção migra quando é cancelada no texto. */
+const CANCEL_INVERSE: Partial<Record<Mood, Mood>> = {
+  happy: "sad", happySlight: "sad", soft: "tense", hopeful: "tense",
+  shy: "tense", blush: "tense", blushLight: "tense", flirty: "tense",
+  sleepy: "tense", surprised: "tense",
+  sad: "calm", crying: "sad", tearSingle: "sad",
+  angry: "tense", angrySlight: "calm", scared: "tense", tense: "calm",
+};
+
+function isCancelled(haystack: string, idx: number, len: number): boolean {
+  const before = haystack.slice(Math.max(0, idx - 28), idx);
+  const after = haystack.slice(idx + len, idx + len + 45);
+  return CANCEL_MARKERS.some((m) => after.includes(m) || before.includes(m));
+}
+
+type Segment = { text: string; factor: number };
+
+function analyzeSegments(
+  segments: Segment[],
 ): { mood: Mood; secondary?: Mood; trigger: string } | null {
-  if (!actions.length) return null;
   const scores: Partial<Record<Mood, number>> = {};
   const bestTrigger: Partial<Record<Mood, { kw: string; weight: number }>> = {};
-  // Rastreia posição da última ocorrência de cada mood (para desempate por "última").
   const lastPos: Partial<Record<Mood, number>> = {};
-  const joined = actions.join(" | ");
-  for (const mood of Object.keys(MOOD_ACTION_KEYWORDS) as Mood[]) {
-    const kws = MOOD_ACTION_KEYWORDS[mood]!;
-    for (const [kw, w = 3] of kws) {
-      let from = 0;
-      let idx = joined.indexOf(kw, from);
-      if (idx === -1) continue;
-      while (idx !== -1) {
-        scores[mood] = (scores[mood] ?? 0) + w;
-        lastPos[mood] = Math.max(lastPos[mood] ?? -1, idx);
-        from = idx + kw.length;
-        idx = joined.indexOf(kw, from);
+  let offset = 0;
+
+  for (const seg of segments) {
+    const hay = seg.text;
+    if (!hay) { offset += 1; continue; }
+    for (const mood of Object.keys(MOOD_ACTION_KEYWORDS) as Mood[]) {
+      for (const [kw, w = 3] of MOOD_ACTION_KEYWORDS[mood]!) {
+        let idx = hay.indexOf(kw);
+        while (idx !== -1) {
+          const weight = w * seg.factor;
+          if (isCancelled(hay, idx, kw.length)) {
+            // Emoção negada pelo contexto: migra para a emoção oposta.
+            const inv = CANCEL_INVERSE[mood];
+            if (inv) {
+              scores[inv] = (scores[inv] ?? 0) + weight;
+              lastPos[inv] = Math.max(lastPos[inv] ?? -1, offset + idx);
+              const prevI = bestTrigger[inv];
+              if (!prevI || weight > prevI.weight) bestTrigger[inv] = { kw: `${kw} (negado)`, weight };
+            }
+          } else {
+            scores[mood] = (scores[mood] ?? 0) + weight;
+            lastPos[mood] = Math.max(lastPos[mood] ?? -1, offset + idx);
+            const prev = bestTrigger[mood];
+            if (!prev || weight > prev.weight) bestTrigger[mood] = { kw, weight };
+          }
+          idx = hay.indexOf(kw, idx + kw.length);
+        }
       }
-      const prev = bestTrigger[mood];
-      if (!prev || w > prev.weight) bestTrigger[mood] = { kw, weight: w };
     }
+    offset += hay.length + 3;
   }
+
   const entries = Object.entries(scores) as Array<[Mood, number]>;
   if (!entries.length) return null;
   entries.sort((a, b) => b[1] - a[1]);
-  // Detecta valências presentes
   const valences = new Set(entries.map(([m]) => MOOD_VALENCE[m]));
   const hasConflict = valences.has("warm") && valences.has("distress");
   let primary: Mood;
   let secondary: Mood | undefined;
   if (hasConflict) {
-    // Última emoção mencionada vence
     const sortedByPos = [...entries].sort(
       (a, b) => (lastPos[b[0]] ?? -1) - (lastPos[a[0]] ?? -1),
     );
     primary = sortedByPos[0][0];
   } else {
     primary = entries[0][0];
-    // Se há uma segunda emoção compatível com peso relevante, mistura
     const candidate = entries.find(
       ([m]) => m !== primary && MOOD_VALENCE[m] === MOOD_VALENCE[primary],
     );
     if (candidate && candidate[1] >= 3) secondary = candidate[0];
   }
   return { mood: primary, secondary, trigger: bestTrigger[primary]?.kw ?? primary };
+}
+
+/**
+ * Autorizador CONTEXTUAL: lê a mensagem inteira.
+ * Ações (*...*) pesam o dobro do texto narrativo comum, e negações
+ * ("o sorriso desaparece") invertem a emoção em vez de dispará-la.
+ */
+export function detectMoodFromMessage(
+  text: string,
+): { mood: Mood; secondary?: Mood; trigger: string } | null {
+  const t = (text || "").toLowerCase();
+  if (!t.trim()) return null;
+  const actions = extractActions(text);
+  const narrative = t.replace(/\*[^*]+\*/g, " ").replace(/\s+/g, " ").trim();
+  const segments: Segment[] = [
+    ...actions.map((a) => ({ text: a, factor: 1 })),
+    ...(narrative ? [{ text: narrative, factor: 0.55 }] : []),
+  ];
+  return analyzeSegments(segments);
+}
+
+export function detectMoodFromActions(
+  actions: string[],
+): { mood: Mood; secondary?: Mood; trigger: string } | null {
+  if (!actions.length) return null;
+  return analyzeSegments(actions.map((a) => ({ text: a, factor: 1 })));
 }
 
 const LANGUAGE_LABELS = {
