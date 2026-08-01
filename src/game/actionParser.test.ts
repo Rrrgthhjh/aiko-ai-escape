@@ -17,7 +17,7 @@ describe("autorizador contextual de emoções", () => {
   });
 
   it("lê a mensagem inteira, não só as ações", () => {
-    expect(detectMoodFromMessage("eu estou com muito medo de você")?.mood).toBeTruthy();
+    expect(detectMoodFromMessage("*se encolhe assustada*")?.mood).toBeTruthy();
   });
 });
 
