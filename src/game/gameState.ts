@@ -1,28 +1,5 @@
-import type { ChatMessage, Mood, Room } from "./types";
+import type { ChatMessage, Mood } from "./types";
 import { extractActions, detectMoodFromActions } from "./actionParser";
-
-export const ROOM_CLUES: Record<Room, { id: string; label: string; reveal: string }> = {
-  sala: {
-    id: "photo-frame",
-    label: "porta-retrato virado",
-    reveal: "No porta-retrato há uma foto sua dormindo nesta casa. No verso, está escrito: 'agora ela vai ficar'.",
-  },
-  cozinha: {
-    id: "locked-drawer",
-    label: "gaveta trancada",
-    reveal: "Dentro da gaveta há uma chave pequena e um bilhete amassado: 'não deixar perto da porta'.",
-  },
-  banheiro: {
-    id: "mirror-mark",
-    label: "espelho embaçado",
-    reveal: "No vapor do espelho aparece uma frase escrita antes: 'não confie no chá'.",
-  },
-  quarto: {
-    id: "diary-page",
-    label: "página de diário",
-    reveal: "A página diz que ela ensaiou várias formas de convencer você de que tudo era normal.",
-  },
-};
 
 const softWords = ["por favor", "confio", "entendo", "desculpa", "sinto", "calma", "obrigado", "obrigada"];
 const tenseWords = ["mentira", "raptou", "sequestro", "fugir", "polícia", "porta", "chave", "preso", "presa"];
@@ -36,19 +13,6 @@ const blushWords = ["me deixa vermelha", "cora forte", "que vergonha", "fiquei s
 const flirtyWords = ["gostosa", "vem cá", "vem aqui", "que tal", "me beija", "brincadeira safada", "que provocante", "sedutora", "malandra"];
 const scaredWords = ["me machucar", "vai me matar", "medo de você", "estou com medo", "não chega perto", "me solta", "socorro", "afasta"];
 const sleepyWords = ["boa noite", "estou com sono", "que sono", "cansada", "vamos dormir", "durma", "vamos deitar", "cochilar"];
-
-const MOOD_TRIGGERS: Record<Exclude<Mood, "calm" | "hopeful" | "soft" | "tense">, string[]> = {
-  shy: shyWords,
-  happy: happyWords,
-  sad: sadWords,
-  surprised: surprisedWords,
-  crying: cryingWords,
-  angry: angryWords,
-  blush: blushWords,
-  flirty: flirtyWords,
-  scared: scaredWords,
-  sleepy: sleepyWords,
-};
 
 function findTriggers(text: string, words: string[]): string[] {
   return words.filter((w) => text.includes(w));
@@ -182,4 +146,8 @@ export const MOOD_LABELS: Record<Mood, string> = {
   flirty: "provocante",
   scared: "assustada",
   sleepy: "sonolenta",
+  happySlight: "levemente contente",
+  blushLight: "levemente corada",
+  tearSingle: "com uma lágrima",
+  angrySlight: "levemente irritada",
 };
