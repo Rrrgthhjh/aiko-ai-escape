@@ -40,37 +40,44 @@ async function call(body: unknown): Promise<Captured> {
   return captured;
 }
 
-Deno.test("modo normal: corta para os últimos 8 e adiciona resumo", async () => {
-  const c = await call({ messages: makeMessages(20), character: { name: "Aiko" } });
-  assertEquals(c.body.messages.length, 9);
+Deno.test("sem limites: envia SEMPRE o histórico completo", async () => {
+  const c = await call({ messages: makeMessages(40), character: { name: "Aiko" } });
+  assertEquals(c.body.messages.length, 41);
   assertEquals(c.body.messages[0].role, "system");
-  assertEquals(c.body.messages[1].content, "msg-12");
-  assertEquals(c.body.messages[8].content, "msg-19");
-  assert(c.body.messages[0].content.includes("Memória:"), "deve conter resumo das antigas");
-  assertEquals(c.body.max_tokens, 120);
-});
-
-Deno.test("modo normal: max_tokens clamped a 250", async () => {
-  const c = await call({ messages: makeMessages(3), character: {}, settings: { maxTokens: 9999 } });
-  assertEquals(c.body.max_tokens, 250);
-});
-
-Deno.test("modo normal: devMode só ativa com bool true (não string)", async () => {
-  const c = await call({ messages: makeMessages(20), character: {}, settings: { devMode: "true" } });
-  assertEquals(c.body.messages.length, 9);
-  assertEquals(c.body.max_tokens, 120);
-});
-
-Deno.test("modo de testes: histórico completo, sem resumo, max_tokens elevado", async () => {
-  const c = await call({ messages: makeMessages(20), character: {}, settings: { devMode: true, maxTokens: 1500 } });
-  assertEquals(c.body.messages.length, 21);
   assertEquals(c.body.messages[1].content, "msg-0");
-  assertEquals(c.body.messages[20].content, "msg-19");
-  assert(!c.body.messages[0].content.includes("Memória:"), "não deve conter resumo");
-  assertEquals(c.body.max_tokens, 1500);
+  assertEquals(c.body.messages[40].content, "msg-39");
+  assertEquals(c.body.max_tokens, 4000);
 });
 
-Deno.test("modo de testes: max_tokens clamped a 2000", async () => {
-  const c = await call({ messages: makeMessages(3), character: {}, settings: { devMode: true, maxTokens: 99999 } });
-  assertEquals(c.body.max_tokens, 2000);
+Deno.test("fatos imutáveis: dona da casa e sequestradora sempre no prompt", async () => {
+  const c = await call({ messages: makeMessages(2), character: { name: "Aiko", playerName: "Kai" } });
+  const sys = c.body.messages[0].content as string;
+  assert(sys.includes("The house is YOURS"));
+  assert(sys.includes("abducted Kai"));
+  assert(sys.includes("NEVER forget"));
+});
+
+Deno.test("local público: regras de recusa a ações íntimas na rua", async () => {
+  const c = await call({ messages: makeMessages(2), character: {}, room: "fast-food" });
+  const sys = c.body.messages[0].content as string;
+  assert(sys.includes("PUBLIC PLACE RULES"));
+  assert(sys.includes("praça") || sys.includes("food court") || sys.includes("shopping"));
+});
+
+Deno.test("dentro de casa: regras privadas, sem restrição de local público", async () => {
+  const c = await call({ messages: makeMessages(2), character: {}, room: "quarto" });
+  const sys = c.body.messages[0].content as string;
+  assert(sys.includes("PRIVATE HOUSE RULES"));
+  assert(!sys.includes("PUBLIC PLACE RULES"));
+});
+
+Deno.test("impressões persistentes chegam ao prompt", async () => {
+  const c = await call({
+    messages: makeMessages(2),
+    character: {},
+    impressions: ["ela guarda uma ferida antiga"],
+  });
+  const sys = c.body.messages[0].content as string;
+  assert(sys.includes("LINGERING IMPRESSIONS"));
+  assert(sys.includes("ela guarda uma ferida antiga"));
 });
