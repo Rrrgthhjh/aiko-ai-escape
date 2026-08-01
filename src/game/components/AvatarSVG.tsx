@@ -24,6 +24,15 @@ import fuseHappyShy from "@/assets/aiko-mood-happy-shy.png";
 import fuseScaredSad from "@/assets/aiko-mood-scared-sad.png";
 import fuseSurprisedHappy from "@/assets/aiko-mood-surprised-happy.png";
 import fuseAngryCrying from "@/assets/aiko-mood-angry-crying.png";
+import fuseBlushShy from "@/assets/aiko-mood-blush-shy.png";
+import fuseFlirtyHappy from "@/assets/aiko-mood-flirty-happy.png";
+import fuseHappySleepy from "@/assets/aiko-mood-happy-sleepy.png";
+import fuseCryingScared from "@/assets/aiko-mood-crying-scared.png";
+// Variações de INTENSIDADE
+import moodSmileSoft from "@/assets/aiko-mood-smile-soft.png";
+import moodBlushLight from "@/assets/aiko-mood-blush-light.png";
+import moodTearSingle from "@/assets/aiko-mood-tear-single.png";
+import moodAnnoyed from "@/assets/aiko-mood-annoyed.png";
 import type { AppearanceVariant, Character, Mood } from "../types";
 import { useEffect, useRef, useState } from "react";
 
@@ -53,6 +62,10 @@ const MOOD_SRC: Partial<Record<Mood, string>> = {
   flirty: moodFlirty,
   scared: moodScared,
   sleepy: moodSleepy,
+  happySlight: moodSmileSoft,
+  blushLight: moodBlushLight,
+  tearSingle: moodTearSingle,
+  angrySlight: moodAnnoyed,
 };
 
 /** Mapeia um par de emoções (ordem-agnóstico) para uma imagem de fusão dedicada. */
@@ -63,6 +76,15 @@ const MOOD_FUSION_SRC: Record<string, string> = {
   "sad|scared": fuseScaredSad,
   "happy|surprised": fuseSurprisedHappy,
   "angry|crying": fuseAngryCrying,
+  "blush|shy": fuseBlushShy,
+  "flirty|happy": fuseFlirtyHappy,
+  "happy|sleepy": fuseHappySleepy,
+  "crying|scared": fuseCryingScared,
+  // Intensidades reaproveitam a fusão mais próxima
+  "blushLight|shy": fuseBlushShy,
+  "flirty|happySlight": fuseFlirtyHappy,
+  "happySlight|sleepy": fuseHappySleepy,
+  "crying|tearSingle": fuseAngryCrying,
 };
 function fusionKey(a: Mood, b: Mood): string {
   return [a, b].sort().join("|");
@@ -84,6 +106,10 @@ const GESTURE_CLASS: Record<Mood, string> = {
   flirty: "animate-gesture-shy-sway",
   scared: "animate-gesture-tremble",
   sleepy: "animate-gesture-nod",
+  happySlight: "",
+  blushLight: "animate-gesture-shy-sway",
+  tearSingle: "animate-gesture-lookaway",
+  angrySlight: "animate-gesture-lookaway",
 };
 
 /**
