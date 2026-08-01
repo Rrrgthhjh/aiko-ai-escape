@@ -317,6 +317,23 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
         </div>
       )}
 
+      {/* Pedido explícito de permissão do microfone */}
+      {voiceMode && micPermission !== "granted" && (
+        <div className="px-4 py-2 text-xs flex items-center gap-2 bg-primary/15 border-t border-primary/40 text-foreground">
+          <Mic className="w-4 h-4 shrink-0 text-primary-glow" />
+          <span className="flex-1">
+            {micPermission === "denied"
+              ? "O microfone está bloqueado para este site. Abra o cadeado 🔒 na barra de endereço e permita o microfone."
+              : "Para falar com ela, o navegador precisa da sua permissão de microfone."}
+          </span>
+          {micPermission !== "denied" && (
+            <Button size="sm" onClick={requestMicPermission} disabled={askingMic} className="h-7 text-xs shrink-0">
+              {askingMic ? <Loader2 className="w-3 h-3 animate-spin" /> : "Permitir microfone"}
+            </Button>
+          )}
+        </div>
+      )}
+
       <div className="p-3 border-t border-border/60 flex gap-2">
         {voiceMode && (
           <Button
