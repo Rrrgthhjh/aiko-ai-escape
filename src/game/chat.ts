@@ -1,7 +1,7 @@
-import type { Character, ChatMessage } from "./types";
+import type { Character, ChatMessage, Room } from "./types";
 import type { ChatSettings } from "./types";
 import { DEFAULT_CHAT_SETTINGS } from "./types";
-import { isDevMode, DEV_MAX_MESSAGE_LENGTH } from "./devMode";
+import { isDevMode } from "./devMode";
 import { detectLanguage } from "./actionParser";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
@@ -11,6 +11,9 @@ export async function streamChat({
   history,
   character,
   chatSettings,
+  room,
+  isPublic,
+  impressions,
   onDelta,
   onDone,
   onError,
@@ -18,6 +21,9 @@ export async function streamChat({
   history: ChatMessage[];
   character: Character;
   chatSettings?: ChatSettings;
+  room?: Room;
+  isPublic?: boolean;
+  impressions?: string[];
   onDelta: (chunk: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
@@ -34,11 +40,14 @@ export async function streamChat({
       body: JSON.stringify({
         character,
         messages: history.map((m) => ({ role: m.role, content: m.content })),
+        room,
+        isPublic,
+        impressions,
         settings: {
-          maxTokens: dev ? 1000 : settings.maxTokens,
-          recentLimit: settings.recentLimit,
+          // Sem limites: memória completa e resposta livre.
+          maxTokens: 0,
+          fullMemory: true,
           devMode: dev,
-          maxMessageLength: dev ? DEV_MAX_MESSAGE_LENGTH : settings.maxMessageLength,
           language,
         },
       }),
