@@ -37,7 +37,53 @@ export type ChatMessage = {
   ts: number;
 };
 
-export type Room = "sala" | "cozinha" | "banheiro" | "quarto";
+/** Locais macro do jogo. */
+export type Place = "casa" | "parque" | "shopping";
+
+/** Sub-local (cômodo/ponto) dentro de um Place. */
+export type Room =
+  // casa
+  | "sala" | "cozinha" | "banheiro" | "quarto"
+  // parque
+  | "lago" | "quadra"
+  // shopping
+  | "loja-de-roupas" | "fast-food" | "loja-de-brinquedos";
+
+export const PLACE_ROOMS: Record<Place, Room[]> = {
+  casa: ["sala", "cozinha", "banheiro", "quarto"],
+  parque: ["lago", "quadra"],
+  shopping: ["loja-de-roupas", "fast-food", "loja-de-brinquedos"],
+};
+
+export const PLACE_LABELS: Record<Place, string> = {
+  casa: "Casa",
+  parque: "Parque",
+  shopping: "Shopping",
+};
+
+export const ROOM_LABELS: Record<Room, string> = {
+  sala: "Sala",
+  cozinha: "Cozinha",
+  banheiro: "Banheiro",
+  quarto: "Quarto",
+  lago: "Lago",
+  quadra: "Quadra",
+  "loja-de-roupas": "Loja de roupas",
+  "fast-food": "Praça de alimentação",
+  "loja-de-brinquedos": "Loja de brinquedos",
+};
+
+export function placeOfRoom(room: Room): Place {
+  for (const p of Object.keys(PLACE_ROOMS) as Place[]) {
+    if (PLACE_ROOMS[p].includes(room)) return p;
+  }
+  return "casa";
+}
+
+/** Locais públicos: ações íntimas devem ser recusadas pela IA. */
+export function isPublicPlace(room: Room): boolean {
+  return placeOfRoom(room) !== "casa";
+}
 
 export type Mood =
   | "calm"
@@ -53,7 +99,12 @@ export type Mood =
   | "blush"
   | "flirty"
   | "scared"
-  | "sleepy";
+  | "sleepy"
+  // ——— variações de INTENSIDADE ———
+  | "happySlight"   // sorriso pequeno
+  | "blushLight"    // corar levemente
+  | "tearSingle"    // uma lágrima solitária
+  | "angrySlight";  // irritação contida
 
 export type ChatPreset = "economic" | "normal";
 

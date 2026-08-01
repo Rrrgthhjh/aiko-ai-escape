@@ -2,6 +2,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useRef, useMemo } from "react";
 import * as THREE from "three";
 import type { Mood, Room as RoomName } from "../types";
+import { placeOfRoom } from "../types";
 
 type Props = { room: RoomName; mood?: Mood };
 
@@ -10,6 +11,11 @@ const ROOM_PALETTES: Record<RoomName, { wall: string; floor: string; accent: str
   cozinha: { wall: "#5a7a8a", floor: "#2d404c", accent: "#7fe0ff" },
   banheiro: { wall: "#5a8a8a", floor: "#2d4c4a", accent: "#b0ffe5" },
   quarto: { wall: "#8a5a7a", floor: "#46233d", accent: "#ff9fd5" },
+  lago: { wall: "#8fb9d9", floor: "#33604a", accent: "#a8e6ff" },
+  quadra: { wall: "#9fc4e0", floor: "#7a4b3a", accent: "#ffd28f" },
+  "loja-de-roupas": { wall: "#b28fc4", floor: "#4a3a55", accent: "#ffc0e8" },
+  "fast-food": { wall: "#c48f8f", floor: "#553a3a", accent: "#ffd48f" },
+  "loja-de-brinquedos": { wall: "#8fc4a8", floor: "#3a5546", accent: "#9fffd2" },
 };
 
 function Particles() {
@@ -37,7 +43,7 @@ function Particles() {
   );
 }
 
-function Room({ palette, mood = "calm" }: { palette: { wall: string; floor: string; accent: string }; mood?: Mood }) {
+function Room({ palette, mood = "calm", outdoor = false }: { palette: { wall: string; floor: string; accent: string }; mood?: Mood; outdoor?: boolean }) {
   const lightRef = useRef<THREE.PointLight>(null);
   useFrame((s) => {
     if (lightRef.current) {
@@ -48,30 +54,40 @@ function Room({ palette, mood = "calm" }: { palette: { wall: string; floor: stri
     <group>
       {/* Chão */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]} receiveShadow>
-        <planeGeometry args={[12, 12]} />
+        <planeGeometry args={[outdoor ? 40 : 12, outdoor ? 40 : 12]} />
         <meshStandardMaterial color={palette.floor} roughness={0.9} />
       </mesh>
-      {/* Paredes */}
-      <mesh position={[0, 2, -5]}>
-        <planeGeometry args={[12, 6]} />
-        <meshStandardMaterial color={palette.wall} roughness={1} />
-      </mesh>
-      <mesh position={[-5, 2, 0]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[12, 6]} />
-        <meshStandardMaterial color={palette.wall} roughness={1} />
-      </mesh>
-      <mesh position={[5, 2, 0]} rotation={[0, -Math.PI / 2, 0]}>
-        <planeGeometry args={[12, 6]} />
-        <meshStandardMaterial color={palette.wall} roughness={1} />
-      </mesh>
-      {/* Janela com luz */}
-      <mesh position={[-4.95, 2.2, -1.5]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[2, 2.4]} />
-        <meshBasicMaterial color="#9fc8ff" />
-      </mesh>
+      {outdoor ? (
+        /* Céu aberto ao fundo */
+        <mesh position={[0, 6, -18]}>
+          <planeGeometry args={[60, 24]} />
+          <meshBasicMaterial color={palette.wall} />
+        </mesh>
+      ) : (
+        <>
+          {/* Paredes */}
+          <mesh position={[0, 2, -5]}>
+            <planeGeometry args={[12, 6]} />
+            <meshStandardMaterial color={palette.wall} roughness={1} />
+          </mesh>
+          <mesh position={[-5, 2, 0]} rotation={[0, Math.PI / 2, 0]}>
+            <planeGeometry args={[12, 6]} />
+            <meshStandardMaterial color={palette.wall} roughness={1} />
+          </mesh>
+          <mesh position={[5, 2, 0]} rotation={[0, -Math.PI / 2, 0]}>
+            <planeGeometry args={[12, 6]} />
+            <meshStandardMaterial color={palette.wall} roughness={1} />
+          </mesh>
+          {/* Janela com luz */}
+          <mesh position={[-4.95, 2.2, -1.5]} rotation={[0, Math.PI / 2, 0]}>
+            <planeGeometry args={[2, 2.4]} />
+            <meshBasicMaterial color="#9fc8ff" />
+          </mesh>
+        </>
+      )}
       <pointLight ref={lightRef} position={[-3, 2.2, -1.5]} color="#9fc8ff" intensity={2.0} distance={14} />
       <pointLight position={[0, 3, 0]} color={palette.accent} intensity={1.6} distance={12} />
-      <ambientLight intensity={0.8} />
+      <ambientLight intensity={outdoor ? 1.3 : 0.8} />
       <hemisphereLight args={[palette.accent, palette.floor, 0.6]} />
 
       {/* Móveis simples */}
@@ -100,6 +116,7 @@ function CameraRig() {
 
 export default function Scene3D({ room, mood }: Props) {
   const palette = ROOM_PALETTES[room];
+  const outdoor = placeOfRoom(room) === "parque";
   return (
     <Canvas
       camera={{ position: [0, 1.2, 3], fov: 60 }}
@@ -111,9 +128,9 @@ export default function Scene3D({ room, mood }: Props) {
         });
       }}
     >
-      <fog attach="fog" args={[palette.floor, 8, 20]} />
+      <fog attach="fog" args={[outdoor ? palette.wall : palette.floor, outdoor ? 14 : 8, outdoor ? 40 : 20]} />
       <CameraRig />
-      <Room palette={palette} mood={mood} />
+      <Room palette={palette} mood={mood} outdoor={outdoor} />
     </Canvas>
   );
 }

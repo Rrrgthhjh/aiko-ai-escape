@@ -22,6 +22,14 @@ import fuseHappyShy from "@/assets/aiko-mood-happy-shy.png";
 import fuseScaredSad from "@/assets/aiko-mood-scared-sad.png";
 import fuseSurprisedHappy from "@/assets/aiko-mood-surprised-happy.png";
 import fuseAngryCrying from "@/assets/aiko-mood-angry-crying.png";
+import fuseBlushShy from "@/assets/aiko-mood-blush-shy.png";
+import fuseFlirtyHappy from "@/assets/aiko-mood-flirty-happy.png";
+import fuseHappySleepy from "@/assets/aiko-mood-happy-sleepy.png";
+import fuseCryingScared from "@/assets/aiko-mood-crying-scared.png";
+import moodSmileSoft from "@/assets/aiko-mood-smile-soft.png";
+import moodBlushLight from "@/assets/aiko-mood-blush-light.png";
+import moodTearSingle from "@/assets/aiko-mood-tear-single.png";
+import moodAnnoyed from "@/assets/aiko-mood-annoyed.png";
 
 export const AVATAR_ASSETS: string[] = [
   portraitDress,
@@ -48,6 +56,14 @@ export const AVATAR_ASSETS: string[] = [
   fuseScaredSad,
   fuseSurprisedHappy,
   fuseAngryCrying,
+  fuseBlushShy,
+  fuseFlirtyHappy,
+  fuseHappySleepy,
+  fuseCryingScared,
+  moodSmileSoft,
+  moodBlushLight,
+  moodTearSingle,
+  moodAnnoyed,
 ];
 
 let started = false;
