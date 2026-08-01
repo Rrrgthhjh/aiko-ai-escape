@@ -82,8 +82,40 @@ function startQuarto(c: AudioContext): () => void {
   return () => { window.clearInterval(interval); try { osc.stop(); } catch {} };
 }
 
+function startAmbienteAberto(c: AudioContext): () => void {
+  // Parque: vento leve + pássaros esporádicos
+  const noise = c.createBufferSource(); noise.buffer = noiseBuffer(c, 4); noise.loop = true;
+  const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 900;
+  const ng = c.createGain(); ng.gain.value = 0.03;
+  noise.connect(lp).connect(ng).connect(c.destination); noise.start();
+  const interval = window.setInterval(() => {
+    const o = c.createOscillator(); const g = c.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(2400, c.currentTime);
+    o.frequency.exponentialRampToValueAtTime(3200, c.currentTime + 0.09);
+    g.gain.setValueAtTime(0.0001, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.03, c.currentTime + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.18);
+    o.connect(g).connect(c.destination); o.start(); o.stop(c.currentTime + 0.2);
+  }, 3400);
+  return () => { window.clearInterval(interval); try { noise.stop(); } catch {} };
+}
+
+function startMultidao(c: AudioContext): () => void {
+  // Shopping: burburinho de multidão (ruído filtrado modulado)
+  const noise = c.createBufferSource(); noise.buffer = noiseBuffer(c, 5); noise.loop = true;
+  const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 600; bp.Q.value = 0.5;
+  const ng = c.createGain(); ng.gain.value = 0.045;
+  const lfo = c.createOscillator(); lfo.type = "sine"; lfo.frequency.value = 0.15;
+  const lfoGain = c.createGain(); lfoGain.gain.value = 0.015;
+  lfo.connect(lfoGain).connect(ng.gain); lfo.start();
+  noise.connect(bp).connect(ng).connect(c.destination); noise.start();
+  return () => { try { noise.stop(); lfo.stop(); } catch {} };
+}
+
 const STARTERS: Record<Room, (c: AudioContext) => () => void> = {
   sala: startSala, cozinha: startCozinha, banheiro: startBanheiro, quarto: startQuarto,
+  lago: startAmbienteAberto, quadra: startAmbienteAberto,
+  "loja-de-roupas": startMultidao, "fast-food": startMultidao, "loja-de-brinquedos": startMultidao,
 };
 
 export function playRoomAmbience(room: Room) {
