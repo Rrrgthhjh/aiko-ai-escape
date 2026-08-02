@@ -28,6 +28,14 @@ import fuseBlushShy from "@/assets/aiko-mood-blush-shy.png";
 import fuseFlirtyHappy from "@/assets/aiko-mood-flirty-happy.png";
 import fuseHappySleepy from "@/assets/aiko-mood-happy-sleepy.png";
 import fuseCryingScared from "@/assets/aiko-mood-crying-scared.png";
+import fuseAngrySurprised from "@/assets/aiko-mood-angry-surprised.png";
+import fuseSadSleepy from "@/assets/aiko-mood-sad-sleepy.png";
+import fuseScaredSurprised from "@/assets/aiko-mood-scared-surprised.png";
+import fuseFlirtyShy from "@/assets/aiko-mood-flirty-shy.png";
+import fuseBlushHappy from "@/assets/aiko-mood-blush-happy.png";
+import fuseSadShy from "@/assets/aiko-mood-sad-shy.png";
+import fuseAngrySad from "@/assets/aiko-mood-angry-sad.png";
+import fuseBlushSurprised from "@/assets/aiko-mood-blush-surprised.png";
 // Variações de INTENSIDADE
 import moodSmileSoft from "@/assets/aiko-mood-smile-soft.png";
 import moodBlushLight from "@/assets/aiko-mood-blush-light.png";
@@ -80,11 +88,25 @@ const MOOD_FUSION_SRC: Record<string, string> = {
   "flirty|happy": fuseFlirtyHappy,
   "happy|sleepy": fuseHappySleepy,
   "crying|scared": fuseCryingScared,
+  "angry|surprised": fuseAngrySurprised,
+  "sad|sleepy": fuseSadSleepy,
+  "scared|surprised": fuseScaredSurprised,
+  "flirty|shy": fuseFlirtyShy,
+  "blush|happy": fuseBlushHappy,
+  "sad|shy": fuseSadShy,
+  "angry|sad": fuseAngrySad,
+  "blush|surprised": fuseBlushSurprised,
   // Intensidades reaproveitam a fusão mais próxima
   "blushLight|shy": fuseBlushShy,
   "flirty|happySlight": fuseFlirtyHappy,
   "happySlight|sleepy": fuseHappySleepy,
   "crying|tearSingle": fuseAngryCrying,
+  "angrySlight|surprised": fuseAngrySurprised,
+  "blushLight|happy": fuseBlushHappy,
+  "blushLight|surprised": fuseBlushSurprised,
+  "happySlight|blushLight": fuseBlushHappy,
+  "sad|tearSingle": fuseSadShy,
+  "angrySlight|sad": fuseAngrySad,
 };
 function fusionKey(a: Mood, b: Mood): string {
   return [a, b].sort().join("|");
