@@ -49,11 +49,13 @@ Deno.test("sem limites: envia SEMPRE o histórico completo", async () => {
   assertEquals(c.body.max_tokens, 4000);
 });
 
-Deno.test("fatos imutáveis: dona da casa e sequestradora sempre no prompt", async () => {
+Deno.test("roleplay livre: sem enredo de cativeiro nem traço possessivo fixo", async () => {
   const c = await call({ messages: makeMessages(2), character: { name: "Aiko", playerName: "Kai" } });
   const sys = c.body.messages[0].content as string;
-  assert(sys.includes("The house is YOURS"));
-  assert(sys.includes("abducted Kai"));
+  assert(!sys.includes("abducted"));
+  assert(!sys.includes("The house is YOURS"));
+  assert(sys.includes("no captivity"));
+  assert(sys.includes("completely free"));
   assert(sys.includes("NEVER forget"));
 });
 
@@ -67,7 +69,7 @@ Deno.test("local público: regras de recusa a ações íntimas na rua", async ()
 Deno.test("dentro de casa: regras privadas, sem restrição de local público", async () => {
   const c = await call({ messages: makeMessages(2), character: {}, room: "quarto" });
   const sys = c.body.messages[0].content as string;
-  assert(sys.includes("PRIVATE HOUSE RULES"));
+  assert(sys.includes("PRIVATE RULES"));
   assert(!sys.includes("PUBLIC PLACE RULES"));
 });
 

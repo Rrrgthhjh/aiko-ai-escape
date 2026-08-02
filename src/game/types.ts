@@ -137,7 +137,7 @@ export type SaveState = {
 export const DEFAULT_CHARACTER: Character = {
   name: "Aiko",
   playerName: "",
-  personality: "Doce e atenciosa por fora, possessiva por dentro.",
+  personality: "Doce, curiosa e atenciosa. Gosta de conversas longas e sinceras.",
   playerPersonality: "Curioso(a), cauteloso(a) e observador(a). Tenta entender antes de agir.",
   appearance: "dress",
   hueShift: 0,

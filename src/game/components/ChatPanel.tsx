@@ -30,8 +30,6 @@ type Props = {
   messages: ChatMessage[];
   setMessages: (updater: (m: ChatMessage[]) => ChatMessage[]) => void;
   mood: Mood;
-  persuasion: number;
-  suspicion: number;
   chatSettings?: ChatSettings;
   /** Callback opcional para exibir legendas fora do chat (ex.: sobre a cena). */
   onCaption?: (text: string | null) => void;
@@ -39,7 +37,7 @@ type Props = {
   room: Room;
 };
 
-export default function ChatPanel({ character, messages, setMessages, mood, persuasion, suspicion, chatSettings, onCaption, room }: Props) {
+export default function ChatPanel({ character, messages, setMessages, mood, chatSettings, onCaption, room }: Props) {
   const settings = chatSettings ?? DEFAULT_CHAT_SETTINGS;
   const devMode = useDevMode();
   const [input, setInput] = useState("");
@@ -262,15 +260,8 @@ export default function ChatPanel({ character, messages, setMessages, mood, pers
   return (
     <div className="flex flex-col h-full bg-card-soft border-t border-border/60 backdrop-blur-md">
       <div className="px-4 py-2 border-b border-border/60 flex items-center justify-between gap-3 text-[10px] uppercase tracking-widest">
-        <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 items-center flex-1 min-w-0">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           <span className="font-display text-primary-glow truncate">{character.name}: {MOOD_LABELS[mood]}</span>
-          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-            <div className="h-full bg-primary transition-all duration-500" style={{ width: `${persuasion}%` }} />
-          </div>
-          <span className="text-muted-foreground">convencimento</span>
-          <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-            <div className="h-full bg-destructive transition-all duration-500" style={{ width: `${suspicion}%` }} />
-          </div>
         </div>
         <button
           onClick={() => setVoiceMode((v) => !v)}

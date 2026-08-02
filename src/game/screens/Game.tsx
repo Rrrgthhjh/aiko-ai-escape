@@ -228,7 +228,7 @@ export default function Game({
       {/* Chat (oculta com HUD) */}
       {!hudHidden && (
         <div className="h-[44%] sm:h-[40%] min-h-[260px] z-20">
-          <ChatPanel character={character} messages={messages} setMessages={setMessages} mood={gameState.mood} persuasion={gameState.persuasion} suspicion={gameState.suspicion} chatSettings={chatSettings} onCaption={setCaption} room={room} />
+          <ChatPanel character={character} messages={messages} setMessages={setMessages} mood={gameState.mood} chatSettings={chatSettings} onCaption={setCaption} room={room} />
         </div>
       )}
 
