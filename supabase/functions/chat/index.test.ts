@@ -54,7 +54,7 @@ Deno.test("roleplay livre: sem enredo de cativeiro nem traço possessivo fixo", 
   const sys = c.body.messages[0].content as string;
   assert(!sys.includes("abducted"));
   assert(!sys.includes("The house is YOURS"));
-  assert(sys.includes("no captivity"));
+  assert(sys.includes("no plot"));
   assert(sys.includes("completely free"));
   assert(sys.includes("NEVER forget"));
 });
