@@ -141,6 +141,7 @@ export const DEFAULT_CHARACTER: Character = {
   playerName: "",
   personality: "Doce, curiosa e atenciosa. Gosta de conversas longas e sinceras.",
   playerPersonality: "Curioso(a), cauteloso(a) e observador(a). Tenta entender antes de agir.",
+  language: "pt-BR",
   appearance: "dress",
   hueShift: 0,
 };

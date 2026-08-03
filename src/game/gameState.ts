@@ -2,7 +2,7 @@ import type { ChatMessage, Mood } from "./types";
 import { detectMoodFromMessage } from "./actionParser";
 
 const softWords = ["por favor", "confio", "entendo", "desculpa", "sinto", "calma", "obrigado", "obrigada"];
-const tenseWords = ["mentira", "raptou", "sequestro", "fugir", "polícia", "porta", "chave", "preso", "presa"];
+const tenseWords = ["mentira", "mentiu", "não confio", "estranho", "esquisito", "desconfio"];
 const angryWords = ["odeio", "monstro", "louca", "maluca", "nojenta", "cala", "ameaça"];
 const shyWords = ["fofa", "linda", "bonita", "gata", "amo você", "te amo", "beijo", "gosto de você", "cheirosa", "querida"];
 const happyWords = ["haha", "kkkk", "rsrs", "engraçad", "brincadeira", "feliz", "alegr", "divertid", "adorei", "que legal"];
@@ -46,8 +46,9 @@ export function analyzeGameState(messages: ChatMessage[], discoveredCount: numbe
   const recentSleepy = sleepyWords.some((w) => lastUser.includes(w));
   const turns = messages.filter((m) => m.role === "user").length;
 
-  const persuasion = Math.max(0, Math.min(100, 12 + turns * 4 + soft * 9 + discoveredCount * 12 - angry * 12));
-  const suspicion = Math.max(0, Math.min(100, 18 + tense * 10 + angry * 18 + discoveredCount * 8 - soft * 4));
+  // Intensidade emocional bruta (sem barras de progresso na UI).
+  const warmth = Math.max(0, Math.min(100, 12 + turns * 4 + soft * 9 - angry * 12));
+  const tension = Math.max(0, Math.min(100, 8 + tense * 10 + angry * 18 - soft * 4));
 
   // ————————————————————————————————————————————
   // Prioridade #1: emoção sinalizada por AÇÃO (*...*)
@@ -63,8 +64,6 @@ export function analyzeGameState(messages: ChatMessage[], discoveredCount: numbe
     return {
       mood: actionMoodResult.mood,
       secondaryMood: actionMoodResult.secondary,
-      persuasion,
-      suspicion,
       triggers: [actionMoodResult.trigger],
       confidence: 95,
     };
@@ -83,14 +82,14 @@ export function analyzeGameState(messages: ChatMessage[], discoveredCount: numbe
   else if (recentHappy) mood = "happy";
   else if (recentSad) mood = "sad";
   else if (scared > 0) mood = "scared";
-  else if (crying > 0 && suspicion > 60) mood = "crying";
-  else if (persuasion >= 70) mood = "hopeful";
-  else if (angry > 0 || suspicion >= 70) mood = "angry";
+  else if (crying > 0 && tension > 60) mood = "crying";
+  else if (warmth >= 70) mood = "hopeful";
+  else if (angry > 0 || tension >= 70) mood = "angry";
   else if (blush > 0) mood = "blush";
   else if (flirty > 0) mood = "flirty";
   else if (sleepy > 0) mood = "sleepy";
   else if (surprised > 0) mood = "surprised";
-  else if (suspicion >= 45) mood = "tense";
+  else if (tension >= 45) mood = "tense";
   else if (sad > 0) mood = "sad";
   else if (happy > 0) mood = "happy";
   else if (shy > 0) mood = "shy";
@@ -120,15 +119,15 @@ export function analyzeGameState(messages: ChatMessage[], discoveredCount: numbe
     mood === "happy" ? happy * 28 :
     mood === "sad" ? sad * 28 :
     mood === "surprised" ? surprised * 34 :
-    mood === "crying" ? crying * 40 + (suspicion > 60 ? 15 : 0) :
-    mood === "angry" ? angry * 32 + (suspicion >= 70 ? 20 : 0) :
-    mood === "tense" ? Math.max(0, suspicion - 30) * 1.4 :
+    mood === "crying" ? crying * 40 + (tension > 60 ? 15 : 0) :
+    mood === "angry" ? angry * 32 + (tension >= 70 ? 20 : 0) :
+    mood === "tense" ? Math.max(0, tension - 30) * 1.4 :
     mood === "soft" ? soft * 20 :
-    mood === "hopeful" ? Math.max(0, persuasion - 60) * 2 :
+    mood === "hopeful" ? Math.max(0, warmth - 60) * 2 :
     20;
   const confidence = Math.max(10, Math.min(100, Math.round(raw + (triggers.length ? 20 : 0))));
 
-  return { mood, secondaryMood: undefined as Mood | undefined, persuasion, suspicion, triggers, confidence };
+  return { mood, secondaryMood: undefined as Mood | undefined, triggers, confidence };
 }
 
 export const MOOD_LABELS: Record<Mood, string> = {
