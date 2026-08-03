@@ -38,6 +38,22 @@ import fuseBlushHappy from "@/assets/aiko-mood-blush-happy.png";
 import fuseSadShy from "@/assets/aiko-mood-sad-shy.png";
 import fuseAngrySad from "@/assets/aiko-mood-angry-sad.png";
 import fuseBlushSurprised from "@/assets/aiko-mood-blush-surprised.png";
+import fuseBlushSleepy from "@/assets/aiko-mood-blush-sleepy.png";
+import fuseFlirtySleepy from "@/assets/aiko-mood-flirty-sleepy.png";
+import fuseFlirtySurprised from "@/assets/aiko-mood-flirty-surprised.png";
+import fuseShySleepy from "@/assets/aiko-mood-shy-sleepy.png";
+import fuseShySurprised from "@/assets/aiko-mood-shy-surprised.png";
+import fuseSleepySurprised from "@/assets/aiko-mood-sleepy-surprised.png";
+import fuseAngryScared from "@/assets/aiko-mood-angry-scared.png";
+import fuseCryingSad from "@/assets/aiko-mood-crying-sad.png";
+import uniHappy from "@/assets/aiko-uniform-mood-happy.png";
+import uniShy from "@/assets/aiko-uniform-mood-shy.png";
+import uniSad from "@/assets/aiko-uniform-mood-sad.png";
+import uniBlush from "@/assets/aiko-uniform-mood-blush.png";
+import uniAngry from "@/assets/aiko-uniform-mood-angry.png";
+import uniSurprised from "@/assets/aiko-uniform-mood-surprised.png";
+import uniCrying from "@/assets/aiko-uniform-mood-crying.png";
+import uniSleepy from "@/assets/aiko-uniform-mood-sleepy.png";
 
 export const AVATAR_ASSETS: string[] = [
   portraitDress,
@@ -80,6 +96,22 @@ export const AVATAR_ASSETS: string[] = [
   fuseSadShy,
   fuseAngrySad,
   fuseBlushSurprised,
+  fuseBlushSleepy,
+  fuseFlirtySleepy,
+  fuseFlirtySurprised,
+  fuseShySleepy,
+  fuseShySurprised,
+  fuseSleepySurprised,
+  fuseAngryScared,
+  fuseCryingSad,
+  uniHappy,
+  uniShy,
+  uniSad,
+  uniBlush,
+  uniAngry,
+  uniSurprised,
+  uniCrying,
+  uniSleepy,
 ];
 
 let started = false;
