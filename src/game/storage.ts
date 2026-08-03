@@ -19,6 +19,7 @@ export function loadSave(): SaveState | null {
         personality: (c?.personality as string) || DEFAULT_CHARACTER.personality,
         playerPersonality:
           (c?.playerPersonality as string) || DEFAULT_CHARACTER.playerPersonality,
+        language: (c?.language as string) || DEFAULT_CHARACTER.language,
         appearance:
           (c?.appearance as SaveState["character"]["appearance"]) ?? DEFAULT_CHARACTER.appearance,
         hueShift:
