@@ -2,7 +2,7 @@ import type { Character, ChatMessage, Room } from "./types";
 import type { ChatSettings } from "./types";
 import { DEFAULT_CHAT_SETTINGS } from "./types";
 import { isDevMode } from "./devMode";
-import { detectLanguage } from "./actionParser";
+import { languagePrompt } from "./languages";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/chat`;
 const ANON = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
@@ -30,9 +30,8 @@ export async function streamChat({
 }) {
   const settings = chatSettings ?? DEFAULT_CHAT_SETTINGS;
   const dev = isDevMode();
-  // Detecta o idioma pela última mensagem do jogador (com fallback ao histórico).
-  const lastUser = [...history].reverse().find((m) => m.role === "user")?.content ?? "";
-  const language = detectLanguage(lastUser || history.map((m) => m.content).join(" "));
+  // Idioma FIXO escolhido pelo jogador na criação da IA.
+  const language = languagePrompt(character.language);
   try {
     const resp = await fetch(CHAT_URL, {
       method: "POST",

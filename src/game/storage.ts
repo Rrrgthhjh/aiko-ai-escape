@@ -19,6 +19,7 @@ export function loadSave(): SaveState | null {
         personality: (c?.personality as string) || DEFAULT_CHARACTER.personality,
         playerPersonality:
           (c?.playerPersonality as string) || DEFAULT_CHARACTER.playerPersonality,
+        language: (c?.language as string) || DEFAULT_CHARACTER.language,
         appearance:
           (c?.appearance as SaveState["character"]["appearance"]) ?? DEFAULT_CHARACTER.appearance,
         hueShift:
@@ -106,8 +107,6 @@ export function distillImpressions(messages: { role: string; content: string }[]
     out.push("alguém já foi carinhoso com ela — ela confia rápido demais em elogios");
   if (has("odeio", "monstro", "louca", "maluca", "nojenta"))
     out.push("ela guarda uma ferida de ter sido ofendida — reage defensiva a agressividade");
-  if (has("fugir", "polícia", "sequestr", "me solta", "socorro", "porta", "chave"))
-    out.push("ela desconfia de tentativas de fuga — fica alerta quando falam em sair");
   if (has("mentira", "mentiu", "não confio"))
     out.push("já duvidaram dela antes — fica magoada quando a chamam de mentirosa");
   if (has("obrigad", "desculpa", "por favor", "entendo"))

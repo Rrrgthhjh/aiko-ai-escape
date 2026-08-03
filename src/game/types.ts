@@ -4,6 +4,8 @@ export type Character = {
   personality: string;
   /** Personalidade/traços do jogador — usada pela IA para reagir a você de forma coerente. */
   playerPersonality?: string;
+  /** Idioma fixo em que a IA fala (código, ex.: "pt-BR"). */
+  language?: string;
   /** Variante visual do avatar (penteado OU roupa). Default: dress (long hair + purple dress). */
   appearance?: AppearanceVariant;
   /** Matiz CSS aplicada via filter:hue-rotate. 0 = imagem original. */
@@ -139,6 +141,7 @@ export const DEFAULT_CHARACTER: Character = {
   playerName: "",
   personality: "Doce, curiosa e atenciosa. Gosta de conversas longas e sinceras.",
   playerPersonality: "Curioso(a), cauteloso(a) e observador(a). Tenta entender antes de agir.",
+  language: "pt-BR",
   appearance: "dress",
   hueShift: 0,
 };

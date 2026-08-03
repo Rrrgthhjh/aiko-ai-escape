@@ -13,9 +13,9 @@ const Index = () => {
   const [save, setSave] = useState<SaveState | null>(null);
 
   useEffect(() => {
-    document.title = "KAGO — Escape Room Anime";
+    document.title = "KAGO — Roleplay de Conversa com IA Anime";
     const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", "Jogo escape room anime onde você conversa com uma IA que diz ser sua amiga, mas te raptou.");
+    if (meta) meta.setAttribute("content", "Roleplay anime onde você conversa livremente com uma IA: crie a personalidade dela, escolha o idioma e explore cenários.");
   }, []);
 
   const startNew = () => { clearSave(); setPhase("creating"); };
@@ -44,7 +44,7 @@ const Index = () => {
 
   return (
     <main className="h-screen w-screen overflow-hidden bg-background text-foreground">
-      <h1 className="sr-only">KAGO — jogo escape room anime com IA</h1>
+      <h1 className="sr-only">KAGO — roleplay de conversa anime com IA</h1>
 
       {phase === "menu" && (
         <MainMenu onStart={(mode) => (mode === "new" ? startNew() : handleContinue())} />

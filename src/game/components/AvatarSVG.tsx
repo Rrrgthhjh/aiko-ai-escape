@@ -36,6 +36,23 @@ import fuseBlushHappy from "@/assets/aiko-mood-blush-happy.png";
 import fuseSadShy from "@/assets/aiko-mood-sad-shy.png";
 import fuseAngrySad from "@/assets/aiko-mood-angry-sad.png";
 import fuseBlushSurprised from "@/assets/aiko-mood-blush-surprised.png";
+import fuseBlushSleepy from "@/assets/aiko-mood-blush-sleepy.png";
+import fuseFlirtySleepy from "@/assets/aiko-mood-flirty-sleepy.png";
+import fuseFlirtySurprised from "@/assets/aiko-mood-flirty-surprised.png";
+import fuseShySleepy from "@/assets/aiko-mood-shy-sleepy.png";
+import fuseShySurprised from "@/assets/aiko-mood-shy-surprised.png";
+import fuseSleepySurprised from "@/assets/aiko-mood-sleepy-surprised.png";
+import fuseAngryScared from "@/assets/aiko-mood-angry-scared.png";
+import fuseCryingSad from "@/assets/aiko-mood-crying-sad.png";
+// Variante ESTUDANTE (uniforme) — emoções dedicadas
+import uniHappy from "@/assets/aiko-uniform-mood-happy.png";
+import uniShy from "@/assets/aiko-uniform-mood-shy.png";
+import uniSad from "@/assets/aiko-uniform-mood-sad.png";
+import uniBlush from "@/assets/aiko-uniform-mood-blush.png";
+import uniAngry from "@/assets/aiko-uniform-mood-angry.png";
+import uniSurprised from "@/assets/aiko-uniform-mood-surprised.png";
+import uniCrying from "@/assets/aiko-uniform-mood-crying.png";
+import uniSleepy from "@/assets/aiko-uniform-mood-sleepy.png";
 // Variações de INTENSIDADE
 import moodSmileSoft from "@/assets/aiko-mood-smile-soft.png";
 import moodBlushLight from "@/assets/aiko-mood-blush-light.png";
@@ -96,6 +113,14 @@ const MOOD_FUSION_SRC: Record<string, string> = {
   "sad|shy": fuseSadShy,
   "angry|sad": fuseAngrySad,
   "blush|surprised": fuseBlushSurprised,
+  "blush|sleepy": fuseBlushSleepy,
+  "flirty|sleepy": fuseFlirtySleepy,
+  "flirty|surprised": fuseFlirtySurprised,
+  "shy|sleepy": fuseShySleepy,
+  "shy|surprised": fuseShySurprised,
+  "sleepy|surprised": fuseSleepySurprised,
+  "angry|scared": fuseAngryScared,
+  "crying|sad": fuseCryingSad,
   // Intensidades reaproveitam a fusão mais próxima
   "blushLight|shy": fuseBlushShy,
   "flirty|happySlight": fuseFlirtyHappy,
@@ -108,6 +133,24 @@ const MOOD_FUSION_SRC: Record<string, string> = {
   "sad|tearSingle": fuseSadShy,
   "angrySlight|sad": fuseAngrySad,
 };
+/** Emoções dedicadas por variante visual (skins). */
+const VARIANT_MOOD_SRC: Partial<Record<AppearanceVariant, Partial<Record<Mood, string>>>> = {
+  "outfit-uniform": {
+    happy: uniHappy,
+    happySlight: uniHappy,
+    shy: uniShy,
+    sad: uniSad,
+    tearSingle: uniSad,
+    blush: uniBlush,
+    blushLight: uniBlush,
+    angry: uniAngry,
+    angrySlight: uniAngry,
+    surprised: uniSurprised,
+    crying: uniCrying,
+    sleepy: uniSleepy,
+  },
+};
+
 function fusionKey(a: Mood, b: Mood): string {
   return [a, b].sort().join("|");
 }
@@ -152,6 +195,7 @@ export default function AvatarSVG({
   style?: React.CSSProperties;
 }) {
   const variant: AppearanceVariant = character?.appearance ?? "dress";
+  const variantMoodSrc = mood ? VARIANT_MOOD_SRC[variant]?.[mood] : undefined;
   const moodSrc = mood ? MOOD_SRC[mood] : undefined;
   // Se houver mood secundário compatível, tenta usar imagem de FUSÃO dedicada
   // (ex.: chorar+feliz = "chorar de emoção"). Só para variante padrão.
@@ -162,6 +206,7 @@ export default function AvatarSVG({
   // Retratos de emoção só sobrescrevem a variante padrão (mesma pose/roupa base).
   const src =
     fusionSrc ??
+    variantMoodSrc ??
     (moodSrc && variant === "dress" ? moodSrc : (VARIANT_SRC[variant] ?? portraitDress));
 
   // Crossfade: mantém a imagem anterior por baixo enquanto a nova entra.
