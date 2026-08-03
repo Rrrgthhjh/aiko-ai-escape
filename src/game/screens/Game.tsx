@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Eye, Pause, ChevronLeft, ChevronRight, EyeOff, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Scene3D from "../components/Scene3D";
+import Scene2D from "../components/Scene2D";
 import ChatPanel from "../components/ChatPanel";
 import PauseMenu from "../components/PauseMenu";
 import RoomPicker from "../components/RoomPicker";
@@ -162,7 +162,7 @@ export default function Game({
 
       {/* Cena 3D + retrato sobreposto */}
       <div className="relative flex-1 min-h-0">
-        <Scene3D room={room} mood={gameState.mood} />
+        <Scene2D room={room} mood={gameState.mood} />
         {/* Overlay de transição entre cômodos */}
         <div
           className={`pointer-events-none absolute inset-0 z-30 bg-background transition-opacity duration-300 ${
