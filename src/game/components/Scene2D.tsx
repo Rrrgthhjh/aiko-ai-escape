@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { Mood, Room as RoomName } from "../types";
-import { placeOfRoom } from "../types";
+
 import bgSala from "@/assets/scene-sala-bg.jpg";
 import bgCozinha from "@/assets/scene-cozinha-bg.jpg";
 import bgBanheiro from "@/assets/scene-banheiro-bg.jpg";
