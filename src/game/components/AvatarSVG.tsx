@@ -53,6 +53,8 @@ import uniAngry from "@/assets/aiko-uniform-mood-angry.png";
 import uniSurprised from "@/assets/aiko-uniform-mood-surprised.png";
 import uniCrying from "@/assets/aiko-uniform-mood-crying.png";
 import uniSleepy from "@/assets/aiko-uniform-mood-sleepy.png";
+import uniFlirty from "@/assets/aiko-uniform-mood-flirty.png";
+import uniScared from "@/assets/aiko-uniform-mood-scared.png";
 // Variações de INTENSIDADE
 import moodSmileSoft from "@/assets/aiko-mood-smile-soft.png";
 import moodBlushLight from "@/assets/aiko-mood-blush-light.png";
@@ -148,6 +150,9 @@ const VARIANT_MOOD_SRC: Partial<Record<AppearanceVariant, Partial<Record<Mood, s
     surprised: uniSurprised,
     crying: uniCrying,
     sleepy: uniSleepy,
+    flirty: uniFlirty,
+    scared: uniScared,
+    tense: uniScared,
   },
 };
 

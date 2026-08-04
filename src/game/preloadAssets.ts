@@ -54,6 +54,8 @@ import uniAngry from "@/assets/aiko-uniform-mood-angry.png";
 import uniSurprised from "@/assets/aiko-uniform-mood-surprised.png";
 import uniCrying from "@/assets/aiko-uniform-mood-crying.png";
 import uniSleepy from "@/assets/aiko-uniform-mood-sleepy.png";
+import uniFlirty from "@/assets/aiko-uniform-mood-flirty.png";
+import uniScared from "@/assets/aiko-uniform-mood-scared.png";
 
 export const AVATAR_ASSETS: string[] = [
   portraitDress,
@@ -112,6 +114,8 @@ export const AVATAR_ASSETS: string[] = [
   uniSurprised,
   uniCrying,
   uniSleepy,
+  uniFlirty,
+  uniScared,
 ];
 
 let started = false;

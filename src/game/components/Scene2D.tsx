@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { Mood, Room as RoomName } from "../types";
-import { placeOfRoom } from "../types";
+
 import bgSala from "@/assets/scene-sala-bg.jpg";
 import bgCozinha from "@/assets/scene-cozinha-bg.jpg";
 import bgBanheiro from "@/assets/scene-banheiro-bg.jpg";
@@ -10,10 +10,6 @@ import bgQuadra from "@/assets/scene-quadra-bg.jpg";
 import bgRoupas from "@/assets/scene-loja-de-roupas-bg.jpg";
 import bgFastFood from "@/assets/scene-fast-food-bg.jpg";
 import bgBrinquedos from "@/assets/scene-loja-de-brinquedos-bg.jpg";
-import fgCasa from "@/assets/scene-fg-casa.png";
-import fgParque from "@/assets/scene-fg-parque.png";
-import fgShopping from "@/assets/scene-fg-shopping.png";
-
 /** Camada de fundo (mais distante) de cada cômodo. */
 export const ROOM_BACKGROUNDS: Record<RoomName, string> = {
   sala: bgSala,
@@ -26,13 +22,6 @@ export const ROOM_BACKGROUNDS: Record<RoomName, string> = {
   "fast-food": bgFastFood,
   "loja-de-brinquedos": bgBrinquedos,
 };
-
-/** Camada de objetos à frente do personagem, por local. */
-const PLACE_FOREGROUNDS = {
-  casa: fgCasa,
-  parque: fgParque,
-  shopping: fgShopping,
-} as const;
 
 /** Tonalidade da luz ambiente conforme a emoção atual. */
 const MOOD_TINTS: Partial<Record<Mood, string>> = {
@@ -54,12 +43,10 @@ const MOOD_TINTS: Partial<Record<Mood, string>> = {
 /**
  * Cenário 2D em camadas (parallax leve):
  * 1. fundo (imagem do cômodo) → 2. luz/atmosfera → 3. personagem (renderizada por cima, no Game)
- * → 4. objetos em primeiro plano (planta, grama, sacolas) → 5. vinheta.
+ * → 4. vinheta. Sem objetos em primeiro plano: nada cobre a personagem.
  */
 export default function Scene2D({ room, mood = "calm" }: { room: RoomName; mood?: Mood }) {
-  const place = placeOfRoom(room);
   const bg = ROOM_BACKGROUNDS[room];
-  const fg = PLACE_FOREGROUNDS[place];
   const tint = useMemo(() => MOOD_TINTS[mood], [mood]);
 
   return (
@@ -80,16 +67,7 @@ export default function Scene2D({ room, mood = "calm" }: { room: RoomName; mood?
         style={{ backgroundColor: tint ?? "transparent" }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-background/25" />
-      {/* Camada 4 — primeiro plano (fica na frente da personagem) */}
-      <img
-        src={fg}
-        alt=""
-        aria-hidden
-        width={1536}
-        height={512}
-        className="pointer-events-none absolute -bottom-2 left-0 w-full z-20 object-cover opacity-95 select-none"
-      />
-      {/* Camada 5 — vinheta */}
+      {/* Camada 4 — vinheta */}
       <div className="pointer-events-none absolute inset-0 z-30 shadow-[inset_0_0_140px_rgba(0,0,0,0.55)]" />
     </div>
   );
