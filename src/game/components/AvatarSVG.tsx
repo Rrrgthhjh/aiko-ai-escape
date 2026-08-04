@@ -93,6 +93,10 @@ const MOOD_SRC: Partial<Record<Mood, string>> = {
   blushLight: moodBlushLight,
   tearSingle: moodTearSingle,
   angrySlight: moodAnnoyed,
+  // Estados sutis também ganham retrato próprio para a troca ser sempre visível
+  soft: moodSmileSoft,
+  hopeful: moodSmileSoft,
+  tense: moodAnnoyed,
 };
 
 /** Mapeia um par de emoções (ordem-agnóstico) para uma imagem de fusão dedicada. */
@@ -205,14 +209,16 @@ export default function AvatarSVG({
   // Se houver mood secundário compatível, tenta usar imagem de FUSÃO dedicada
   // (ex.: chorar+feliz = "chorar de emoção"). Só para variante padrão.
   const fusionSrc =
-    mood && secondaryMood && variant === "dress"
-      ? MOOD_FUSION_SRC[fusionKey(mood, secondaryMood)]
-      : undefined;
-  // Retratos de emoção só sobrescrevem a variante padrão (mesma pose/roupa base).
+    mood && secondaryMood ? MOOD_FUSION_SRC[fusionKey(mood, secondaryMood)] : undefined;
+  // Ordem: skin dedicada → fusão → retrato de emoção → sprite base.
+  // Se a variante não tem retrato próprio para o humor, usamos o retrato de
+  // emoção padrão mesmo assim: é melhor a emoção aparecer do que a imagem travar.
   const src =
-    fusionSrc ??
     variantMoodSrc ??
-    (moodSrc && variant === "dress" ? moodSrc : (VARIANT_SRC[variant] ?? portraitDress));
+    fusionSrc ??
+    moodSrc ??
+    VARIANT_SRC[variant] ??
+    portraitDress;
 
   // Crossfade: mantém a imagem anterior por baixo enquanto a nova entra.
   const [current, setCurrent] = useState(src);

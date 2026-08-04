@@ -1,10 +1,31 @@
 import type { Mood, Room } from "./types";
 
-/** Extrai o conteúdo entre asteriscos (ações da narração). */
+/**
+ * Extrai o conteúdo de AÇÕES da narração.
+ * A IA nem sempre usa asteriscos: também aceitamos _itálico_, (parênteses),
+ * «guillemets», ~til~ e um asterisco de abertura sem fechamento no fim da linha.
+ */
 export function extractActions(text: string): string[] {
   if (!text) return [];
-  const matches = text.match(/\*([^*]+)\*/g) || [];
-  return matches.map((m) => m.slice(1, -1).toLowerCase().trim()).filter(Boolean);
+  const out: string[] = [];
+  const patterns = [
+    /\*\*([^*]+)\*\*/g,
+    /\*([^*\n]+)\*/g,
+    /_([^_\n]+)_/g,
+    /\(([^)\n]+)\)/g,
+    /«([^»\n]+)»/g,
+    /~([^~\n]+)~/g,
+  ];
+  for (const re of patterns) {
+    for (const m of text.matchAll(re)) {
+      const v = m[1].toLowerCase().trim();
+      if (v) out.push(v);
+    }
+  }
+  // Asterisco aberto e nunca fechado (ex.: "*ela sorri" no fim da mensagem)
+  const dangling = text.match(/\*([^*\n]{3,})$/);
+  if (dangling) out.push(dangling[1].toLowerCase().trim());
+  return Array.from(new Set(out));
 }
 
 const ROOM_KEYWORDS: Record<Room, string[]> = {
@@ -86,6 +107,8 @@ const MOOD_ACTION_KEYWORDS: Partial<Record<Mood, Array<[string, number?]>>> = {
     ["sorri timidamente", 6], ["sorri envergonhada", 6], ["sorriso tímido", 6],
     ["gagueja", 4], ["gaguejando", 4], ["morde o lábio envergonhada", 6],
     ["esconde o rosto", 5], ["se esconde atrás", 4],
+    ["acanhada", 3], ["sem jeito", 3], ["desvia o olhar", 3], ["baixa a cabeça", 3],
+    ["olha para o chão", 3], ["mexe no cabelo nervosa", 4], ["shy", 3], ["timidly", 4],
   ],
   blush: [
     ["cora intensamente", 7], ["cora muito", 7], ["fica completamente vermelha", 8],
@@ -93,6 +116,7 @@ const MOOD_ACTION_KEYWORDS: Partial<Record<Mood, Array<[string, number?]>>> = {
     ["cobre o rosto com as mãos", 6], ["esconde o rosto vermelh", 7],
     ["rosto pega fogo", 7], ["queima de vergonha", 6], ["deeply blushes", 6],
     ["face flushes deeply", 6],
+    ["rosto todo vermelho", 7], ["orelhas vermelhas", 6], ["vermelha como", 7],
   ],
   flirty: [
     ["sorri maliciosa", 7], ["sorri sedutora", 7], ["sorri provocante", 7],
@@ -100,6 +124,8 @@ const MOOD_ACTION_KEYWORDS: Partial<Record<Mood, Array<[string, number?]>>> = {
     ["olha de canto", 4], ["se aproxima sensualmente", 7], ["sussurra no ouvido", 6],
     ["encosta o corpo em você", 6], ["passa a mão pelo cabelo provocante", 6],
     ["winks", 5], ["smirks", 6], ["teases", 5],
+    ["flerta", 5], ["provoca", 4], ["sedutor", 5], ["sedutora", 5], ["malicios", 5],
+    ["olhar sedutor", 6], ["tom provocante", 5], ["sussurra sensual", 6],
   ],
   scared: [
     ["treme de medo", 8], ["olhar aterrorizada", 7], ["se encolhe assustada", 7],
@@ -107,12 +133,15 @@ const MOOD_ACTION_KEYWORDS: Partial<Record<Mood, Array<[string, number?]>>> = {
     ["olhos arregalados de medo", 8], ["cobre a boca com medo", 7],
     ["dá um passo para trás assustada", 7], ["shrinks back in fear", 6],
     ["trembles in fear", 7], ["gasps in terror", 7],
+    ["com medo", 5], ["assustad", 5], ["apavorad", 6], ["aterroriz", 6],
+    ["se encolhe", 4], ["dá um passo para trás", 4], ["scared", 5], ["afraid", 5],
   ],
   sleepy: [
     ["boceja", 6], ["esfrega os olhos", 5], ["cai no sono", 7], ["cochila", 7],
     ["olhos pesados", 6], ["mal consegue manter os olhos abertos", 7],
     ["se espreguiça sonolenta", 6], ["yawns", 5], ["rubs her eyes sleepy", 6],
     ["dozing off", 6],
+    ["sonolent", 5], ["com sono", 5], ["se espreguiça", 4], ["sleepy", 5],
   ],
   happy: [
     ["gargalha", 5], ["gargalhada", 5], ["risadinha", 4], ["ri alto", 5],
@@ -120,37 +149,50 @@ const MOOD_ACTION_KEYWORDS: Partial<Record<Mood, Array<[string, number?]>>> = {
     ["sorri radiante", 5], ["laughs", 4], ["grins", 4], ["beams", 4],
     ["bate palmas", 4], ["pula de alegria", 5], ["olhos brilham de alegria", 5],
     ["sorri", 2], ["smiles", 2], ["sonrí", 2],
+    ["sorriso", 2], ["sorrindo", 3], ["sorriu", 3], ["rindo", 3], ["riu", 3],
+    ["dá risada", 4], ["anima", 3], ["empolgad", 4], ["radiante", 4],
+    ["alegre", 3], ["feliz", 3], ["contente", 3], ["happy", 3], ["smiling", 3],
   ],
   sad: [
     ["suspira triste", 5], ["olha para baixo triste", 5], ["cabisbaix", 4],
     ["lágrima escorre", 5], ["olhos marejados", 5], ["sighs sadly", 4],
     ["olha para baixo", 3], ["encolhe os ombros triste", 5],
+    ["triste", 3], ["entristec", 4], ["magoad", 4], ["chateada", 4],
+    ["desanimad", 4], ["melancóli", 4], ["suspira", 2], ["sad", 3],
   ],
   crying: [
     ["chora baixinho", 6], ["chora", 5], ["soluç", 5], ["cai em prantos", 6],
     ["lágrimas escorrem", 6], ["cries", 4], ["sobs", 5], ["chorando", 5],
+    ["chorou", 5], ["em lágrimas", 6], ["lágrimas rolam", 6], ["desaba em lágrimas", 6],
   ],
   angry: [
     ["grita com raiva", 6], ["grita", 4], ["cerra os punhos", 5],
     ["range os dentes", 5], ["bate na parede", 5], ["bate a mão", 4],
     ["shouts", 4], ["glares", 4], ["franze o cenho", 4], ["olhar furioso", 5],
     ["olha com raiva", 5],
+    ["furios", 5], ["irritad", 4], ["brava", 4], ["com raiva", 5],
+    ["angry", 4], ["bufa", 3], ["cruza os braços irritada", 5],
   ],
   surprised: [
     ["arregala os olhos", 5], ["boquiaberta", 5], ["engasga", 4],
     ["gasps", 4], ["eyes widen", 4], ["recua surpres", 5],
     ["dá um pulo de susto", 5], ["fica sem palavras surpres", 5],
+    ["surpres", 4], ["espantad", 4], ["chocada", 4], ["pasma", 4],
+    ["abre a boca", 3], ["surprised", 4], ["shocked", 4],
   ],
   tense: [
     ["se afasta tensa", 5], ["recua um passo", 4], ["fica tensa", 5],
     ["aperta os punhos", 3], ["morde o lábio nervosa", 5], ["prende a respiração", 4],
+    ["nervos", 4], ["tensa", 4], ["desconfiada", 4], ["hesita", 3], ["engole em seco", 4],
   ],
   soft: [
     ["acaricia", 4], ["abraça", 4], ["sorri suavemente", 4],
     ["encosta a mão", 3], ["fala baixinho", 3], ["olha carinhosa", 4],
+    ["carinhos", 3], ["ternura", 4], ["afaga", 4], ["sorriso terno", 5], ["gentilmente", 3],
   ],
   hopeful: [
     ["olha esperançosa", 5], ["respira aliviada", 5], ["sorri esperançosa", 5],
+    ["esperançosa", 4], ["aliviada", 4], ["com esperança", 4],
   ],
 };
 

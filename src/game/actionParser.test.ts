@@ -31,3 +31,17 @@ describe("autorizador de locais", () => {
     expect(detectRoomFromActions(["caminha com você pelo shopping"])).toBe("loja-de-roupas");
   });
 });
+describe("cobertura ampliada de ações", () => {
+  it("detecta ações em itálico com underscore", () => {
+    expect(detectMoodFromMessage("_ela sorri animada_")?.mood).toBe("happy");
+  });
+  it("detecta ações entre parênteses", () => {
+    expect(detectMoodFromMessage("(fica com medo e se encolhe)")?.mood).toBe("scared");
+  });
+  it("detecta adjetivos simples de emoção", () => {
+    expect(detectMoodFromMessage("*fica irritada com você*")?.mood).toBeTruthy();
+  });
+  it("detecta asterisco aberto sem fechar", () => {
+    expect(detectMoodFromMessage("oi... *ela cora um pouco")?.mood).toBeTruthy();
+  });
+});
