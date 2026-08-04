@@ -57,6 +57,15 @@ import uniSleepy from "@/assets/aiko-uniform-mood-sleepy.png";
 import uniFlirty from "@/assets/aiko-uniform-mood-flirty.png";
 import uniScared from "@/assets/aiko-uniform-mood-scared.png";
 
+import uniSmileSoft from "@/assets/aiko-uniform-mood-smile-soft.png";
+import uniBlushLight from "@/assets/aiko-uniform-mood-blush-light.png";
+import uniTearSingle from "@/assets/aiko-uniform-mood-tear-single.png";
+import uniAnnoyed from "@/assets/aiko-uniform-mood-annoyed.png";
+import uniFuseBlushShy from "@/assets/aiko-uniform-mood-blush-shy.png";
+import uniFuseFlirtyHappy from "@/assets/aiko-uniform-mood-flirty-happy.png";
+import uniFuseCryingSad from "@/assets/aiko-uniform-mood-crying-sad.png";
+import uniFuseAngrySurprised from "@/assets/aiko-uniform-mood-angry-surprised.png";
+
 export const AVATAR_ASSETS: string[] = [
   portraitDress,
   hairBob,
@@ -116,6 +125,14 @@ export const AVATAR_ASSETS: string[] = [
   uniSleepy,
   uniFlirty,
   uniScared,
+  uniSmileSoft,
+  uniBlushLight,
+  uniTearSingle,
+  uniAnnoyed,
+  uniFuseBlushShy,
+  uniFuseFlirtyHappy,
+  uniFuseCryingSad,
+  uniFuseAngrySurprised,
 ];
 
 let started = false;

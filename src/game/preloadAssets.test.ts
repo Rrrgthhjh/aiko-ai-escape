@@ -3,7 +3,7 @@ import { AVATAR_ASSETS, preloadAvatarAssets } from "./preloadAssets";
 
 describe("preloadAvatarAssets", () => {
   it("inclui todas as emoções + retrato base + variantes + fusões", () => {
-    expect(AVATAR_ASSETS.length).toBe(58);
+    expect(AVATAR_ASSETS.length).toBe(66);
     // Deve conter cada mood key esperado (via substring do path)
     for (const key of [
       "mood-shy", "mood-happy", "mood-sad", "mood-surprised", "mood-crying", "mood-angry",
