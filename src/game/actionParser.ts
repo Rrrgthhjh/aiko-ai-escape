@@ -1,10 +1,31 @@
 import type { Mood, Room } from "./types";
 
-/** Extrai o conteúdo entre asteriscos (ações da narração). */
+/**
+ * Extrai o conteúdo de AÇÕES da narração.
+ * A IA nem sempre usa asteriscos: também aceitamos _itálico_, (parênteses),
+ * «guillemets», ~til~ e um asterisco de abertura sem fechamento no fim da linha.
+ */
 export function extractActions(text: string): string[] {
   if (!text) return [];
-  const matches = text.match(/\*([^*]+)\*/g) || [];
-  return matches.map((m) => m.slice(1, -1).toLowerCase().trim()).filter(Boolean);
+  const out: string[] = [];
+  const patterns = [
+    /\*\*([^*]+)\*\*/g,
+    /\*([^*\n]+)\*/g,
+    /_([^_\n]+)_/g,
+    /\(([^)\n]+)\)/g,
+    /«([^»\n]+)»/g,
+    /~([^~\n]+)~/g,
+  ];
+  for (const re of patterns) {
+    for (const m of text.matchAll(re)) {
+      const v = m[1].toLowerCase().trim();
+      if (v) out.push(v);
+    }
+  }
+  // Asterisco aberto e nunca fechado (ex.: "*ela sorri" no fim da mensagem)
+  const dangling = text.match(/\*([^*\n]{3,})$/);
+  if (dangling) out.push(dangling[1].toLowerCase().trim());
+  return Array.from(new Set(out));
 }
 
 const ROOM_KEYWORDS: Record<Room, string[]> = {
