@@ -55,6 +55,14 @@ import uniCrying from "@/assets/aiko-uniform-mood-crying.png";
 import uniSleepy from "@/assets/aiko-uniform-mood-sleepy.png";
 import uniFlirty from "@/assets/aiko-uniform-mood-flirty.png";
 import uniScared from "@/assets/aiko-uniform-mood-scared.png";
+import uniSmileSoft from "@/assets/aiko-uniform-mood-smile-soft.png";
+import uniBlushLight from "@/assets/aiko-uniform-mood-blush-light.png";
+import uniTearSingle from "@/assets/aiko-uniform-mood-tear-single.png";
+import uniAnnoyed from "@/assets/aiko-uniform-mood-annoyed.png";
+import uniFuseBlushShy from "@/assets/aiko-uniform-mood-blush-shy.png";
+import uniFuseFlirtyHappy from "@/assets/aiko-uniform-mood-flirty-happy.png";
+import uniFuseCryingSad from "@/assets/aiko-uniform-mood-crying-sad.png";
+import uniFuseAngrySurprised from "@/assets/aiko-uniform-mood-angry-surprised.png";
 // Variações de INTENSIDADE
 import moodSmileSoft from "@/assets/aiko-mood-smile-soft.png";
 import moodBlushLight from "@/assets/aiko-mood-blush-light.png";
@@ -143,20 +151,36 @@ const MOOD_FUSION_SRC: Record<string, string> = {
 const VARIANT_MOOD_SRC: Partial<Record<AppearanceVariant, Partial<Record<Mood, string>>>> = {
   "outfit-uniform": {
     happy: uniHappy,
-    happySlight: uniHappy,
+    happySlight: uniSmileSoft,
+    soft: uniSmileSoft,
+    hopeful: uniSmileSoft,
     shy: uniShy,
     sad: uniSad,
-    tearSingle: uniSad,
+    tearSingle: uniTearSingle,
     blush: uniBlush,
-    blushLight: uniBlush,
+    blushLight: uniBlushLight,
     angry: uniAngry,
-    angrySlight: uniAngry,
+    angrySlight: uniAnnoyed,
     surprised: uniSurprised,
     crying: uniCrying,
     sleepy: uniSleepy,
     flirty: uniFlirty,
     scared: uniScared,
-    tense: uniScared,
+    tense: uniAnnoyed,
+  },
+};
+
+/** Fusões dedicadas por variante (skins). */
+const VARIANT_FUSION_SRC: Partial<Record<AppearanceVariant, Record<string, string>>> = {
+  "outfit-uniform": {
+    "blush|shy": uniFuseBlushShy,
+    "blushLight|shy": uniFuseBlushShy,
+    "flirty|happy": uniFuseFlirtyHappy,
+    "flirty|happySlight": uniFuseFlirtyHappy,
+    "crying|sad": uniFuseCryingSad,
+    "sad|tearSingle": uniFuseCryingSad,
+    "angry|surprised": uniFuseAngrySurprised,
+    "angrySlight|surprised": uniFuseAngrySurprised,
   },
 };
 
@@ -210,10 +234,15 @@ export default function AvatarSVG({
   // (ex.: chorar+feliz = "chorar de emoção"). Só para variante padrão.
   const fusionSrc =
     mood && secondaryMood ? MOOD_FUSION_SRC[fusionKey(mood, secondaryMood)] : undefined;
+  const variantFusionSrc =
+    mood && secondaryMood
+      ? VARIANT_FUSION_SRC[variant]?.[fusionKey(mood, secondaryMood)]
+      : undefined;
   // Ordem: skin dedicada → fusão → retrato de emoção → sprite base.
   // Se a variante não tem retrato próprio para o humor, usamos o retrato de
   // emoção padrão mesmo assim: é melhor a emoção aparecer do que a imagem travar.
   const src =
+    variantFusionSrc ??
     variantMoodSrc ??
     fusionSrc ??
     moodSrc ??
