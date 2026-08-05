@@ -73,13 +73,13 @@ Deno.test("dentro de casa: regras privadas, sem restrição de local público", 
   assert(!sys.includes("PUBLIC PLACE RULES"));
 });
 
-Deno.test("impressões persistentes chegam ao prompt", async () => {
+Deno.test("não existe memória de conversas anteriores", async () => {
   const c = await call({
     messages: makeMessages(2),
     character: {},
     impressions: ["ela guarda uma ferida antiga"],
   });
   const sys = c.body.messages[0].content as string;
-  assert(sys.includes("LINGERING IMPRESSIONS"));
-  assert(sys.includes("ela guarda uma ferida antiga"));
+  assert(!sys.includes("LINGERING IMPRESSIONS"));
+  assert(!sys.includes("ela guarda uma ferida antiga"));
 });
