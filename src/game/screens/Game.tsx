@@ -11,7 +11,7 @@ import MoodOverlay from "../components/MoodOverlay";
 import type { SaveState, Character, ChatMessage, Mood, Room } from "../types";
 import { DEFAULT_CHAT_SETTINGS, PLACE_ROOMS, ROOM_LABELS, placeOfRoom } from "../types";
 import type { ChatSettings } from "../types";
-import { writeSave, saveImpressionsFrom } from "../storage";
+import { writeSave } from "../storage";
 import { toast } from "sonner";
 import { analyzeGameState, MOOD_LABELS } from "../gameState";
 import { extractActions, detectRoomFromActions } from "../actionParser";
@@ -100,17 +100,14 @@ export default function Game({
   }, [messages]);
 
   const handleClearMemory = () => {
-    // A memória some, mas as IMPRESSÕES ficam: ela reage diferente sem saber por quê.
-    saveImpressionsFrom(messages);
     _setMessages(() => {
       writeSave({ character, portrait: null, messages: [], warningSeen: true, chatSettings });
       return [];
     });
-    toast.success(`${character.name} esqueceu a conversa — mas algo dela permaneceu.`);
+    toast.success(`${character.name} esqueceu a conversa.`);
   };
 
   const handleUpdateCharacter = async (c: Character) => {
-    saveImpressionsFrom(messages);
     setCharacter(c);
     _setMessages(() => {
       writeSave({ character: c, portrait: null, messages: [], warningSeen: true, chatSettings });
