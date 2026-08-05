@@ -73,58 +73,7 @@ export function clearSave() {
   localStorage.removeItem(KEY);
 }
 
-// ————————————————————————————————————————————————
-// MEMÓRIA PROFUNDA ("impressões")
-// Sobrevive ao apagar a memória: ela não lembra os diálogos,
-// mas guarda a SENSAÇÃO deixada pelo jogador e reage diferente.
-// ————————————————————————————————————————————————
-const IMPRESSIONS_KEY = "kago_impressions_v1";
-const IMPRESSIONS_MAX = 12;
-
-export type Impression = { text: string; ts: number };
-
-export function loadImpressions(): Impression[] {
-  try {
-    return JSON.parse(localStorage.getItem(IMPRESSIONS_KEY) || "[]") as Impression[];
-  } catch { return []; }
-}
-
-export function clearImpressions() {
-  localStorage.removeItem(IMPRESSIONS_KEY);
-}
-
-/** Destila uma conversa em impressões curtas antes de a memória ser apagada. */
-export function distillImpressions(messages: { role: string; content: string }[]): string[] {
-  const userText = messages
-    .filter((m) => m.role === "user")
-    .map((m) => m.content.toLowerCase())
-    .join(" ");
-  if (!userText.trim()) return [];
-  const out: string[] = [];
-  const has = (...ws: string[]) => ws.some((w) => userText.includes(w));
-
-  if (has("te amo", "amo você", "gosto de você", "linda", "fofa", "querida"))
-    out.push("alguém já foi carinhoso com ela — ela confia rápido demais em elogios");
-  if (has("odeio", "monstro", "louca", "maluca", "nojenta"))
-    out.push("ela guarda uma ferida de ter sido ofendida — reage defensiva a agressividade");
-  if (has("mentira", "mentiu", "não confio"))
-    out.push("já duvidaram dela antes — fica magoada quando a chamam de mentirosa");
-  if (has("obrigad", "desculpa", "por favor", "entendo"))
-    out.push("ela lembra vagamente de gentileza — abranda mais rápido com educação");
-  if (has("beijo", "abraç", "me beija"))
-    out.push("existe uma familiaridade física entre vocês que ela não sabe explicar");
-  if (messages.length > 20)
-    out.push("ela sente que já conversaram por muito tempo, mesmo sem lembrar de quê");
-
-  return out;
-}
-
-/** Guarda impressões novas (sem duplicar). */
-export function saveImpressionsFrom(messages: { role: string; content: string }[]) {
-  const fresh = distillImpressions(messages);
-  if (!fresh.length) return;
-  const existing = loadImpressions();
-  const seen = new Set(existing.map((i) => i.text));
-  for (const t of fresh) if (!seen.has(t)) existing.push({ text: t, ts: Date.now() });
-  localStorage.setItem(IMPRESSIONS_KEY, JSON.stringify(existing.slice(-IMPRESSIONS_MAX)));
+// A IA lembra APENAS da conversa atual — não há memória entre conversas.
+export function clearLegacyImpressions() {
+  localStorage.removeItem("kago_impressions_v1");
 }
