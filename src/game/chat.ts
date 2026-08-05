@@ -13,7 +13,6 @@ export async function streamChat({
   chatSettings,
   room,
   isPublic,
-  impressions,
   onDelta,
   onDone,
   onError,
@@ -23,7 +22,6 @@ export async function streamChat({
   chatSettings?: ChatSettings;
   room?: Room;
   isPublic?: boolean;
-  impressions?: string[];
   onDelta: (chunk: string) => void;
   onDone: () => void;
   onError: (msg: string) => void;
@@ -41,7 +39,6 @@ export async function streamChat({
         messages: history.map((m) => ({ role: m.role, content: m.content })),
         room,
         isPublic,
-        impressions,
         settings: {
           // Sem limites: memória completa e resposta livre.
           maxTokens: 0,

@@ -5,10 +5,9 @@ import { Send, AlertTriangle, Loader2, Mic, MicOff, Volume2, VolumeX } from "luc
 import type { Character, ChatMessage, Mood, Room } from "../types";
 import type { ChatSettings } from "../types";
 import { DEFAULT_CHAT_SETTINGS, isPublicPlace } from "../types";
-import { streamChat } from "../chat";
-import { filterUserMessage } from "../contentFilter";
 import { MOOD_LABELS } from "../gameState";
-import { findCachedResponse, loadChatCache, addCacheEntry, loadImpressions } from "../storage";
+import { streamChat } from "../chat";
+import { findCachedResponse, loadChatCache, addCacheEntry } from "../storage";
 import { useDevMode } from "../devMode";
 import { extractAgeFromText, voiceProfileForAge } from "../voice";
 
@@ -202,17 +201,10 @@ export default function ChatPanel({ character, messages, setMessages, mood, chat
 
   const sendWithText = async (rawText: string) => {
     if (loading) return;
-    let cleaned: string;
-    if (devMode) {
-      cleaned = rawText.trim();
-      if (!cleaned) return;
-      setWarn(null);
-    } else {
-      const f = filterUserMessage(rawText);
-      if (f.ok === false) { setWarn(f.reason); return; }
-      setWarn(null);
-      cleaned = f.cleaned;
-    }
+    // Sem qualquer filtro de conteúdo: a mensagem vai como o jogador escreveu.
+    const cleaned = rawText.trim();
+    if (!cleaned) return;
+    setWarn(null);
     // Sem limite de tamanho — a mensagem vai inteira.
     const trimmed = cleaned;
     const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: trimmed, ts: Date.now() };
@@ -234,7 +226,6 @@ export default function ChatPanel({ character, messages, setMessages, mood, chat
         chatSettings: settings,
         room,
         isPublic: isPublicPlace(room),
-        impressions: loadImpressions().map((i) => i.text),
         onDelta: (c) => {
           acc += c;
           setMessages((m) => m.map((x) => (x.id === aiId ? { ...x, content: acc } : x)));
