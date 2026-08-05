@@ -5,10 +5,9 @@ import { Send, AlertTriangle, Loader2, Mic, MicOff, Volume2, VolumeX } from "luc
 import type { Character, ChatMessage, Mood, Room } from "../types";
 import type { ChatSettings } from "../types";
 import { DEFAULT_CHAT_SETTINGS, isPublicPlace } from "../types";
-import { streamChat } from "../chat";
-import { filterUserMessage } from "../contentFilter";
 import { MOOD_LABELS } from "../gameState";
-import { findCachedResponse, loadChatCache, addCacheEntry, loadImpressions } from "../storage";
+import { streamChat } from "../chat";
+import { findCachedResponse, loadChatCache, addCacheEntry } from "../storage";
 import { useDevMode } from "../devMode";
 import { extractAgeFromText, voiceProfileForAge } from "../voice";
 
