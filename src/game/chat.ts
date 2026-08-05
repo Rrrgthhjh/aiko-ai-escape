@@ -12,6 +12,7 @@ export async function streamChat({
   character,
   chatSettings,
   room,
+  isPublic,
   onDelta,
   onDone,
   onError,
