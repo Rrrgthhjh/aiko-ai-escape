@@ -236,7 +236,14 @@ export default function ChatPanel({ character, messages, setMessages, mood, chat
           if (voiceMode && acc) speak(acc);
         },
         onError: (msg) => {
-          setMessages((m) => m.map((x) => (x.id === aiId ? { ...x, content: `*ela hesita* — ${msg}` } : x)));
+          const noCredits = /cr[ée]dito/i.test(msg);
+          // Remove a bolha vazia da IA e mostra um aviso amigável.
+          setMessages((m) => m.filter((x) => x.id !== aiId));
+          setWarn(
+            noCredits
+              ? "Os créditos de IA da workspace acabaram. Adicione créditos (Settings → Plans & credits) para continuar conversando. Sua conversa foi mantida."
+              : `Não consegui responder agora: ${msg}`
+          );
           setLoading(false);
         },
       });
