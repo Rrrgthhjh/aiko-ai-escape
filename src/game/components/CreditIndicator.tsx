@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { Coins, ImageIcon, MessageSquare, Info, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Coins, ImageIcon, MessageSquare, Info, X, Timer } from "lucide-react";
+import { loadUsage, nextRefillAt, formatCountdown, type AiUsage } from "../credits";
 
 /**
  * Indicador visual de consumo de créditos.
@@ -8,16 +9,37 @@ import { Coins, ImageIcon, MessageSquare, Info, X } from "lucide-react";
  */
 export default function CreditIndicator() {
   const [open, setOpen] = useState(false);
+  const [usage, setUsage] = useState<AiUsage>(() => loadUsage());
+  const [left, setLeft] = useState(() => nextRefillAt() - Date.now());
+
+  useEffect(() => {
+    const tick = () => {
+      setUsage(loadUsage());
+      setLeft(nextRefillAt() - Date.now());
+    };
+    tick();
+    const id = window.setInterval(tick, 15000);
+    return () => window.clearInterval(id);
+  }, [open]);
+
+  const outOfCredits = usage.lastOutOfCredits && Date.now() - usage.lastOutOfCredits < 6 * 60 * 60 * 1000;
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        title="Ver consumo de créditos"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card-soft/90 border border-primary/40 backdrop-blur-md text-[10px] uppercase tracking-widest text-primary-glow hover:bg-primary/20 transition-all shadow-glow"
+        title="Ver consumo de créditos e próxima recarga"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card-soft/90 border backdrop-blur-md text-[10px] uppercase tracking-widest transition-all shadow-glow ${
+          outOfCredits
+            ? "border-destructive/60 text-destructive-foreground hover:bg-destructive/20"
+            : "border-primary/40 text-primary-glow hover:bg-primary/20"
+        }`}
       >
         <Coins className="w-3 h-3" />
-        <span className="hidden sm:inline">créditos</span>
+        <span>{usage.used}</span>
+        <span className="opacity-60">·</span>
+        <Timer className="w-3 h-3" />
+        <span>{formatCountdown(left)}</span>
       </button>
 
       {open && (
@@ -45,6 +67,28 @@ export default function CreditIndicator() {
             <p className="text-xs text-muted-foreground mb-4">
               Veja exatamente o que gasta — e o que <strong className="text-primary-glow">não gasta</strong> — créditos da IA.
             </p>
+
+            <div className="mb-4 grid grid-cols-3 gap-2 text-center">
+              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-2.5">
+                <div className="text-lg font-display text-amber-300">{usage.used}</div>
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">respostas pagas</div>
+              </div>
+              <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-2.5">
+                <div className="text-lg font-display text-emerald-300">{usage.cached}</div>
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">grátis (cache)</div>
+              </div>
+              <div className="rounded-xl border border-primary/40 bg-primary/10 p-2.5">
+                <div className="text-lg font-display text-primary-glow">{formatCountdown(left)}</div>
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">próxima recarga</div>
+              </div>
+            </div>
+
+            {outOfCredits && (
+              <div className="mb-4 rounded-xl border border-destructive/50 bg-destructive/15 p-3 text-[11px] leading-snug">
+                Os créditos de IA acabaram recentemente. Eles voltam na recarga diária (em {formatCountdown(left)}) ou
+                assim que forem adicionados créditos à workspace.
+              </div>
+            )}
 
             <div className="space-y-2.5">
               {/* Imagens — não gastam */}
@@ -115,7 +159,8 @@ export default function CreditIndicator() {
             <div className="mt-4 flex items-start gap-2 text-[11px] text-muted-foreground border-t border-border/60 pt-3">
               <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-primary-glow" />
               <span>
-                Dica: limpar a memória da Aiko também reduz o tamanho do contexto enviado, gastando menos por mensagem.
+                A contagem acima é do seu aparelho: mostra quantas respostas de IA foram geradas desde a última recarga
+                diária (00:00 UTC). O saldo exato de créditos fica na workspace, em Settings → Plans &amp; credits.
               </span>
             </div>
           </div>
