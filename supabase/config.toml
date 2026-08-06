@@ -3,6 +3,9 @@ project_id = "amlarsfnpquptqpgbuna"
 [functions.chat]
 verify_jwt = false
 
+[functions.ai-status]
+verify_jwt = false
+
 [functions.generate-portrait]
 verify_jwt = false
 
