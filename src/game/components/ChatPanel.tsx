@@ -10,6 +10,7 @@ import { streamChat } from "../chat";
 import { findCachedResponse, loadChatCache, addCacheEntry } from "../storage";
 import { useDevMode } from "../devMode";
 import { extractAgeFromText, voiceProfileForAge } from "../voice";
+import { recordAiReply, recordCachedReply, recordOutOfCredits } from "../credits";
 
 const TTS_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts`;
 const STT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/stt`;
@@ -216,6 +217,7 @@ export default function ChatPanel({ character, messages, setMessages, mood, chat
     const cached = findCachedResponse(trimmed, loadChatCache());
     if (cached) {
       setMessages((m) => m.map((x) => (x.id === aiId ? { ...x, content: cached } : x)));
+      recordCachedReply();
       setLoading(false);
       if (voiceMode) speak(cached);
     } else {
@@ -232,11 +234,13 @@ export default function ChatPanel({ character, messages, setMessages, mood, chat
         },
         onDone: () => {
           setLoading(false);
+          if (acc) recordAiReply();
           if (acc.length > 5) addCacheEntry(trimmed, acc);
           if (voiceMode && acc) speak(acc);
         },
         onError: (msg) => {
           const noCredits = /cr[ée]dito/i.test(msg);
+          if (noCredits) recordOutOfCredits();
           // Remove a bolha vazia da IA e mostra um aviso amigável.
           setMessages((m) => m.filter((x) => x.id !== aiId));
           setWarn(
